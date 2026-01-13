@@ -1,0 +1,39 @@
+# UIDAI ML Fraud Detection Backend
+# Python Dependencies
+
+# Web Framework
+fastapi==0.109.2
+uvicorn[standard]==0.27.1
+python-multipart==0.0.9
+
+# Data Processing
+pandas==2.2.0
+numpy==1.26.4
+scipy==1.12.0
+
+# Machine Learning
+scikit-learn==1.4.0
+hdbscan==0.8.33
+
+# Deep Learning
+torch==2.2.0
+torchvision==0.17.0
+
+# Visualization
+matplotlib==3.8.2
+seaborn==0.13.2
+plotly==5.18.0
+kaleido==0.2.1
+
+# API & HTTP
+httpx==0.26.0
+requests==2.31.0
+
+# Environment & Config
+python-dotenv==1.0.1
+pydantic==2.6.1
+pydantic-settings==2.1.0
+
+# Utilities
+joblib==1.3.2
+tqdm==4.66.2

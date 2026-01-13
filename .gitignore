@@ -14,6 +14,22 @@ dist-ssr
 
 # Server environment
 server/.env
+ml_backend/.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+*.egg-info/
+.eggs/
+*.egg
+.pytest_cache/
+.mypy_cache/
 
 # Editor directories and files
 .vscode/*
