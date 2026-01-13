@@ -16,6 +16,7 @@ import {
   FileText,
   Settings,
   HelpCircle,
+  Fingerprint,
 } from 'lucide-react';
 
 interface NavItem {
@@ -27,6 +28,7 @@ interface NavItem {
 
 const mainNavItems: NavItem[] = [
   { title: 'Dashboard', href: '/', icon: LayoutDashboard },
+  { title: 'Risk Predictor', href: '/risk-predictor', icon: Fingerprint },
   { title: 'Geographic Hotspots', href: '/hotspots', icon: MapPin },
   { title: 'Enrollment Forecast', href: '/forecast', icon: TrendingUp },
   { title: 'Anomaly Detection', href: '/anomalies', icon: AlertTriangle, badge: 3 },
@@ -187,7 +189,7 @@ export function Sidebar({ className }: SidebarProps) {
           </Button>
         </SheetTrigger>
         <SheetContent side="left" className="w-64 p-0">
-          <SidebarContent collapsed={false} onToggle={() => {}} />
+          <SidebarContent collapsed={false} onToggle={() => { }} />
         </SheetContent>
       </Sheet>
     </>
