@@ -21,8 +21,7 @@ from api.schemas import (
     HighRiskEntity, TemporalTrend
 )
 from data.ingestion import get_data_ingestion
-from data.preprocessing import DataPreprocessor
-from data.feature_engineering import FeatureEngineer
+from data.advanced_preprocessing import MLReadyPipeline, AdvancedFeatureEngineer
 from models.ensemble import EnsembleScorer
 from explainability.feature_attribution import FeatureAttribution, ReasonGenerator
 
@@ -73,23 +72,19 @@ async def run_analysis(job_id: str, dataset_id: str, limit: int):
         analysis_jobs[job_id]["progress"] = 20
         logger.info(f"Fetched {len(df)} records")
         
-        # Step 2: Feature Engineering
-        logger.info("Step 2: Engineering features...")
-        feature_engineer = FeatureEngineer()
-        df_engineered = feature_engineer.engineer_features(df, dataset_id)
-        
-        analysis_jobs[job_id]["progress"] = 35
-        
-        # Step 3: Preprocessing
-        logger.info("Step 3: Preprocessing data...")
-        preprocessor = DataPreprocessor()
-        X, feature_names = preprocessor.fit_transform(df_engineered)
+        # Step 2 & 3: Feature Engineering + Preprocessing (unified pipeline)
+        logger.info("Step 2: Running advanced feature engineering pipeline...")
+        pipeline = MLReadyPipeline(scaling_method='robust')
+        X, feature_names = pipeline.fit_transform(df, dataset_type=dataset_id)
         
         if X.size == 0:
             raise ValueError("No features after preprocessing")
         
         analysis_jobs[job_id]["progress"] = 50
         logger.info(f"Processed {X.shape[0]} samples with {X.shape[1]} features")
+        
+        # Store the engineered dataframe
+        df_engineered = pipeline.feature_engineer.engineer_features(df, dataset_id)
         
         # Step 4: ML Ensemble
         logger.info("Step 4: Running ML ensemble...")
