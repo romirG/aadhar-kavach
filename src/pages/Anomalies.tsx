@@ -1,21 +1,45 @@
+import { useState } from 'react';
 import { DashboardLayout } from '@/components/layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { AlertTriangle, Flag, X, Eye, Bell, Shield } from 'lucide-react';
-import { anomalyAlerts, biometricRisks, formatPercentage } from '@/data/mockData';
+import { AlertTriangle, Flag, X, Eye, Bell, Shield, Loader2, Play, Database } from 'lucide-react';
+import { useMLDatasets, useStartAnalysis, useAnalysisStatus, useAnalysisResults } from '@/hooks/useData';
+import { formatPercentage } from '@/data/dataUtils';
 
 export default function Anomalies() {
-  const criticalAlerts = anomalyAlerts.filter(a => a.severity === 'critical' || a.severity === 'high');
+  const [selectedDataset, setSelectedDataset] = useState<string | null>(null);
+  const [jobId, setJobId] = useState<string | null>(null);
+
+  const { data: datasetsData, isLoading: loadingDatasets } = useMLDatasets();
+  const startAnalysis = useStartAnalysis();
+  const { data: statusData } = useAnalysisStatus(jobId);
+  const { data: resultsData, isLoading: loadingResults } = useAnalysisResults(
+    statusData?.status === 'completed' ? jobId : null
+  );
+
+  const handleStartAnalysis = async (datasetId: string) => {
+    setSelectedDataset(datasetId);
+    try {
+      const result = await startAnalysis.mutateAsync({ datasetId, limit: 500 });
+      setJobId(result.job_id);
+    } catch (error) {
+      console.error('Failed to start analysis:', error);
+    }
+  };
 
   const getSeverityStyles = (severity: string) => {
-    switch (severity) {
-      case 'critical': return { badge: 'bg-destructive text-destructive-foreground', bg: 'bg-destructive/10', text: 'text-destructive' };
-      case 'high': return { badge: 'bg-warning text-warning-foreground', bg: 'bg-warning/10', text: 'text-warning' };
-      case 'medium': return { badge: 'bg-info text-info-foreground', bg: 'bg-info/10', text: 'text-info' };
+    switch (severity.toLowerCase()) {
+      case 'high': return { badge: 'bg-destructive text-destructive-foreground', bg: 'bg-destructive/10', text: 'text-destructive' };
+      case 'medium': return { badge: 'bg-warning text-warning-foreground', bg: 'bg-warning/10', text: 'text-warning' };
       default: return { badge: 'bg-muted text-muted-foreground', bg: 'bg-muted', text: 'text-muted-foreground' };
     }
   };
+
+  const anomalies = resultsData?.anomalies || [];
+  const criticalAlerts = anomalies.filter((a: { risk_level: string }) =>
+    a.risk_level === 'High' || a.risk_level === 'Medium'
+  );
 
   return (
     <DashboardLayout>
@@ -23,9 +47,9 @@ export default function Anomalies() {
         {/* Header */}
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <h1 className="text-2xl font-bold">Anomaly & Fraud Detection</h1>
+            <h1 className="text-2xl font-bold">ML Anomaly & Fraud Detection</h1>
             <p className="text-muted-foreground">
-              Real-time monitoring of suspicious patterns and operator behavior
+              AI-powered detection using Isolation Forest, Autoencoder & HDBSCAN
             </p>
           </div>
           <div className="flex gap-2">
@@ -40,147 +64,237 @@ export default function Anomalies() {
           </div>
         </div>
 
+        {/* Dataset Selection */}
+        <Card className="shadow-card">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Database className="h-5 w-5" />
+              Select Dataset to Analyze
+            </CardTitle>
+            <CardDescription>Choose a data.gov.in dataset for ML analysis</CardDescription>
+          </CardHeader>
+          <CardContent>
+            {loadingDatasets ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-6 w-6 animate-spin" />
+                <span className="ml-2">Loading datasets...</span>
+              </div>
+            ) : (
+              <div className="grid gap-4 md:grid-cols-3">
+                {datasetsData?.datasets?.map((dataset: { id: string; name: string; description: string }) => (
+                  <Card
+                    key={dataset.id}
+                    className={`cursor-pointer transition-all hover:shadow-md ${selectedDataset === dataset.id ? 'ring-2 ring-primary' : ''
+                      }`}
+                    onClick={() => setSelectedDataset(dataset.id)}
+                  >
+                    <CardContent className="p-4">
+                      <h3 className="font-semibold">{dataset.name}</h3>
+                      <p className="text-sm text-muted-foreground mt-1">{dataset.description}</p>
+                      <Button
+                        className="mt-3 w-full"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleStartAnalysis(dataset.id);
+                        }}
+                        disabled={startAnalysis.isPending}
+                      >
+                        {startAnalysis.isPending && selectedDataset === dataset.id ? (
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                          <Play className="mr-2 h-4 w-4" />
+                        )}
+                        Analyze
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Analysis Status */}
+        {jobId && statusData && (
+          <Card className="shadow-card">
+            <CardHeader>
+              <CardTitle>Analysis Status</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-4">
+                {statusData.status === 'processing' && (
+                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                )}
+                {statusData.status === 'completed' && (
+                  <Shield className="h-6 w-6 text-success" />
+                )}
+                <div>
+                  <p className="font-medium capitalize">{statusData.status}</p>
+                  <p className="text-sm text-muted-foreground">{statusData.message}</p>
+                  {statusData.progress !== undefined && (
+                    <div className="mt-2 w-64 bg-muted rounded-full h-2">
+                      <div
+                        className="bg-primary h-2 rounded-full transition-all"
+                        style={{ width: `${statusData.progress}%` }}
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Stats */}
-        <div className="grid gap-4 md:grid-cols-4">
-          <Card className="border-destructive/50 shadow-card">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="rounded-full bg-destructive/10 p-2">
-                  <AlertTriangle className="h-5 w-5 text-destructive" />
+        {resultsData && (
+          <div className="grid gap-4 md:grid-cols-4">
+            <Card className="border-destructive/50 shadow-card">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="rounded-full bg-destructive/10 p-2">
+                    <AlertTriangle className="h-5 w-5 text-destructive" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold">{criticalAlerts.length}</p>
+                    <p className="text-sm text-muted-foreground">High/Medium Alerts</p>
+                  </div>
                 </div>
-                <div>
-                  <p className="text-2xl font-bold">{criticalAlerts.length}</p>
-                  <p className="text-sm text-muted-foreground">Critical/High Alerts</p>
+              </CardContent>
+            </Card>
+            <Card className="shadow-card">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="rounded-full bg-warning/10 p-2">
+                    <Flag className="h-5 w-5 text-warning" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold">{resultsData.anomaly_count}</p>
+                    <p className="text-sm text-muted-foreground">Total Anomalies</p>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
+              </CardContent>
+            </Card>
+            <Card className="shadow-card">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="rounded-full bg-info/10 p-2">
+                    <Eye className="h-5 w-5 text-info" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold">{resultsData.total_records}</p>
+                    <p className="text-sm text-muted-foreground">Records Analyzed</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            <Card className="shadow-card">
+              <CardContent className="p-4">
+                <div className="flex items-center gap-3">
+                  <div className="rounded-full bg-success/10 p-2">
+                    <Shield className="h-5 w-5 text-success" />
+                  </div>
+                  <div>
+                    <p className="text-2xl font-bold">{formatPercentage(100 - resultsData.anomaly_percentage)}</p>
+                    <p className="text-sm text-muted-foreground">System Integrity</p>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {/* Models Used */}
+        {resultsData?.models_used && (
           <Card className="shadow-card">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="rounded-full bg-warning/10 p-2">
-                  <Flag className="h-5 w-5 text-warning" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">12</p>
-                  <p className="text-sm text-muted-foreground">Flagged Operators</p>
-                </div>
+            <CardHeader>
+              <CardTitle>ML Models Used</CardTitle>
+              <CardDescription>Ensemble anomaly detection</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap gap-2">
+                {resultsData.models_used.map((model: string) => (
+                  <Badge key={model} variant="secondary" className="text-sm py-1 px-3">
+                    {model === 'isolation_forest' && '🌲 Isolation Forest'}
+                    {model === 'autoencoder' && '🧠 Autoencoder'}
+                    {model === 'hdbscan' && '📊 HDBSCAN'}
+                  </Badge>
+                ))}
               </div>
             </CardContent>
           </Card>
-          <Card className="shadow-card">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="rounded-full bg-info/10 p-2">
-                  <Eye className="h-5 w-5 text-info" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">847</p>
-                  <p className="text-sm text-muted-foreground">Under Review</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          <Card className="shadow-card">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="rounded-full bg-success/10 p-2">
-                  <Shield className="h-5 w-5 text-success" />
-                </div>
-                <div>
-                  <p className="text-2xl font-bold">99.2%</p>
-                  <p className="text-sm text-muted-foreground">System Integrity</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        )}
 
         {/* Alerts Table */}
-        <Card className="shadow-card">
-          <CardHeader>
-            <CardTitle>Active Alerts</CardTitle>
-            <CardDescription>Sorted by risk score and severity</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              {anomalyAlerts.map((alert) => {
-                const styles = getSeverityStyles(alert.severity);
-                return (
-                  <div key={alert.id} className={`rounded-lg border border-border p-4 ${styles.bg}`}>
-                    <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                      <div className="flex items-start gap-3">
-                        <AlertTriangle className={`h-5 w-5 mt-0.5 ${styles.text}`} />
-                        <div>
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium">{alert.location}</span>
-                            <Badge className={styles.badge}>{alert.severity}</Badge>
-                            <Badge variant="outline">Score: {alert.riskScore.toFixed(1)}</Badge>
+        {anomalies.length > 0 && (
+          <Card className="shadow-card">
+            <CardHeader>
+              <CardTitle>Detected Anomalies</CardTitle>
+              <CardDescription>Sorted by risk score</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {anomalies.slice(0, 10).map((alert: {
+                  record_id: string;
+                  anomaly_score: number;
+                  risk_level: string;
+                  confidence: number;
+                  reasons: string[];
+                }) => {
+                  const styles = getSeverityStyles(alert.risk_level);
+                  return (
+                    <div key={alert.record_id} className={`rounded-lg border border-border p-4 ${styles.bg}`}>
+                      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                        <div className="flex items-start gap-3">
+                          <AlertTriangle className={`h-5 w-5 mt-0.5 ${styles.text}`} />
+                          <div>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="font-medium">Record #{alert.record_id}</span>
+                              <Badge className={styles.badge}>{alert.risk_level}</Badge>
+                              <Badge variant="outline">Score: {(alert.anomaly_score * 10).toFixed(1)}</Badge>
+                              <Badge variant="outline">Confidence: {formatPercentage(alert.confidence * 100)}</Badge>
+                            </div>
+                            <div className="mt-2 space-y-1">
+                              {alert.reasons?.slice(0, 3).map((reason: string, idx: number) => (
+                                <p key={idx} className="text-sm text-muted-foreground">{reason}</p>
+                              ))}
+                            </div>
                           </div>
-                          <p className="mt-1 text-sm text-muted-foreground">{alert.description}</p>
-                          <p className="mt-1 text-xs text-muted-foreground">
-                            {alert.state} • {alert.affectedCount} affected • {new Date(alert.timestamp).toLocaleString('en-IN')}
-                          </p>
+                        </div>
+                        <div className="flex gap-2">
+                          <Button variant="outline" size="sm">
+                            <Eye className="mr-1 h-3 w-3" /> Details
+                          </Button>
+                          <Button variant="outline" size="sm">
+                            <Flag className="mr-1 h-3 w-3" /> Flag
+                          </Button>
+                          <Button variant="ghost" size="sm">
+                            <X className="h-4 w-4" />
+                          </Button>
                         </div>
                       </div>
-                      <div className="flex gap-2">
-                        <Button variant="outline" size="sm">
-                          <Eye className="mr-1 h-3 w-3" /> Details
-                        </Button>
-                        <Button variant="outline" size="sm">
-                          <Flag className="mr-1 h-3 w-3" /> Flag
-                        </Button>
-                        <Button variant="ghost" size="sm">
-                          <X className="h-4 w-4" />
-                        </Button>
-                      </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
-          </CardContent>
-        </Card>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
-        {/* Biometric Risk Table */}
-        <Card className="shadow-card">
-          <CardHeader>
-            <CardTitle>Biometric Failure Risk Analysis</CardTitle>
-            <CardDescription>High-risk demographic segments requiring outreach</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border">
-                    <th className="pb-3 text-left font-medium">Age Group</th>
-                    <th className="pb-3 text-left font-medium">State</th>
-                    <th className="pb-3 text-left font-medium">Failure Rate</th>
-                    <th className="pb-3 text-left font-medium">Common Issue</th>
-                    <th className="pb-3 text-left font-medium">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {biometricRisks.slice(0, 5).map((risk) => (
-                    <tr key={risk.id} className="border-b border-border/50">
-                      <td className="py-3 font-medium">{risk.ageGroup}</td>
-                      <td className="py-3">{risk.state}</td>
-                      <td className="py-3">
-                        <Badge variant={risk.failureProbability > 0.3 ? 'destructive' : 'secondary'}>
-                          {formatPercentage(risk.failureProbability * 100)}
-                        </Badge>
-                      </td>
-                      <td className="py-3 text-muted-foreground">{risk.commonIssue}</td>
-                      <td className="py-3">
-                        <Button variant="ghost" size="sm">Plan Outreach</Button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Empty State */}
+        {!jobId && (
+          <Card className="shadow-card">
+            <CardContent className="py-12">
+              <div className="text-center">
+                <Shield className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                <h3 className="text-lg font-semibold">Select a Dataset to Begin</h3>
+                <p className="text-muted-foreground mt-2">
+                  Choose one of the datasets above and click "Analyze" to run ML-powered fraud detection.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </DashboardLayout>
   );

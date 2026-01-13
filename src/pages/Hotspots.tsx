@@ -2,25 +2,46 @@ import { DashboardLayout } from '@/components/layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Download, FileText, Share2, MapPin, AlertCircle, TrendingDown } from 'lucide-react';
-import { statesData, districtsData, getHotspotDistricts, formatPercentage } from '@/data/mockData';
-import { useState } from 'react';
+import { MapPin, AlertTriangle, Download, Loader2 } from 'lucide-react';
+import { useHotspots, useStateData } from '@/hooks/useData';
+import { formatPercentage } from '@/data/dataUtils';
 
 export default function Hotspots() {
-  const [selectedState, setSelectedState] = useState<string>('all');
-  const hotspots = getHotspotDistricts();
-  
-  const filteredHotspots = selectedState === 'all' 
-    ? hotspots 
-    : hotspots.filter(d => d.stateId === selectedState);
+  const { hotspots, isLoading, error } = useHotspots(0.85);
+  const { statesData } = useStateData();
+
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-96">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <span className="ml-2">Loading hotspot data...</span>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <DashboardLayout>
+        <div className="flex flex-col items-center justify-center h-96 text-destructive">
+          <AlertTriangle className="h-12 w-12 mb-4" />
+          <p>Error loading data. Make sure the backend servers are running.</p>
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   const getCoverageColor = (coverage: number) => {
-    if (coverage >= 95) return 'bg-success';
-    if (coverage >= 90) return 'bg-success/70';
-    if (coverage >= 85) return 'bg-warning';
-    if (coverage >= 80) return 'bg-warning/70';
-    return 'bg-destructive';
+    if (coverage < 70) return 'text-destructive';
+    if (coverage < 85) return 'text-warning';
+    return 'text-success';
+  };
+
+  const getCoverageBg = (coverage: number) => {
+    if (coverage < 70) return 'bg-destructive/10';
+    if (coverage < 85) return 'bg-warning/10';
+    return 'bg-success/10';
   };
 
   return (
@@ -29,148 +50,147 @@ export default function Hotspots() {
         {/* Header */}
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <h1 className="text-2xl font-bold">Geographic Hotspot Detection</h1>
+            <h1 className="text-2xl font-bold">Enrollment Hotspots</h1>
             <p className="text-muted-foreground">
-              AI-powered identification of low-coverage districts requiring intervention
+              Districts with low enrollment coverage requiring targeted outreach
             </p>
           </div>
           <div className="flex gap-2">
             <Button variant="outline" size="sm">
               <Download className="mr-2 h-4 w-4" />
-              Export Data
-            </Button>
-            <Button variant="outline" size="sm">
-              <FileText className="mr-2 h-4 w-4" />
-              Generate Report
+              Export Report
             </Button>
             <Button size="sm">
-              <Share2 className="mr-2 h-4 w-4" />
-              Share
+              Plan Outreach
             </Button>
           </div>
         </div>
 
-        {/* Filters */}
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex flex-wrap gap-4">
-              <Select value={selectedState} onValueChange={setSelectedState}>
-                <SelectTrigger className="w-48">
-                  <SelectValue placeholder="Select State" />
-                </SelectTrigger>
-                <SelectContent className="bg-popover">
-                  <SelectItem value="all">All States</SelectItem>
-                  {statesData.map(state => (
-                    <SelectItem key={state.id} value={state.id}>{state.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <Badge variant="outline" className="h-10 px-4 flex items-center gap-2">
-                <AlertCircle className="h-4 w-4 text-destructive" />
-                {hotspots.length} Hotspots Identified
-              </Badge>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Map Placeholder + Stats */}
-        <div className="grid gap-6 lg:grid-cols-3">
-          <Card className="lg:col-span-2 shadow-card">
-            <CardHeader>
-              <CardTitle>India Coverage Map</CardTitle>
-              <CardDescription>Districts color-coded by enrollment coverage</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="flex h-80 items-center justify-center rounded-lg border-2 border-dashed border-border bg-muted/30">
-                <div className="text-center">
-                  <MapPin className="mx-auto h-12 w-12 text-muted-foreground" />
-                  <p className="mt-2 text-muted-foreground">Interactive India Map</p>
-                  <p className="text-sm text-muted-foreground">Click on states to drill down</p>
+        {/* Summary Stats */}
+        <div className="grid gap-4 md:grid-cols-3">
+          <Card className="shadow-card">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="rounded-full bg-destructive/10 p-2">
+                  <MapPin className="h-5 w-5 text-destructive" />
                 </div>
-              </div>
-              <div className="mt-4 flex justify-center gap-4 text-sm">
-                <span className="flex items-center gap-2"><div className="h-3 w-3 rounded bg-success" /> 95%+</span>
-                <span className="flex items-center gap-2"><div className="h-3 w-3 rounded bg-success/70" /> 90-95%</span>
-                <span className="flex items-center gap-2"><div className="h-3 w-3 rounded bg-warning" /> 85-90%</span>
-                <span className="flex items-center gap-2"><div className="h-3 w-3 rounded bg-warning/70" /> 80-85%</span>
-                <span className="flex items-center gap-2"><div className="h-3 w-3 rounded bg-destructive" /> &lt;80%</span>
+                <div>
+                  <p className="text-2xl font-bold">{hotspots.length}</p>
+                  <p className="text-sm text-muted-foreground">Total Hotspots</p>
+                </div>
               </div>
             </CardContent>
           </Card>
-
-          {/* AI Insights */}
           <Card className="shadow-card">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingDown className="h-5 w-5 text-destructive" />
-                AI Insights
-              </CardTitle>
-              <CardDescription>Gemini-powered recommendations</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="rounded-lg bg-destructive/10 p-3">
-                <p className="text-sm font-medium text-destructive">Critical: Northeast Gap</p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Arunachal Pradesh at 72.1% coverage. Recommend mobile camps in border areas.
-                </p>
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="rounded-full bg-warning/10 p-2">
+                  <AlertTriangle className="h-5 w-5 text-warning" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">{hotspots.filter(h => h.coverage < 70).length}</p>
+                  <p className="text-sm text-muted-foreground">Critical (&lt;70%)</p>
+                </div>
               </div>
-              <div className="rounded-lg bg-warning/10 p-3">
-                <p className="text-sm font-medium text-warning">Warning: Bihar Districts</p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  5 districts below 80%. Kishanganj needs urgent intervention.
-                </p>
-              </div>
-              <div className="rounded-lg bg-info/10 p-3">
-                <p className="text-sm font-medium text-info">Suggestion</p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Deploy 15 additional mobile units to tribal regions in Q2.
-                </p>
+            </CardContent>
+          </Card>
+          <Card className="shadow-card">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="rounded-full bg-info/10 p-2">
+                  <MapPin className="h-5 w-5 text-info" />
+                </div>
+                <div>
+                  <p className="text-2xl font-bold">{new Set(hotspots.map(h => h.state)).size}</p>
+                  <p className="text-sm text-muted-foreground">States Affected</p>
+                </div>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* Hotspot Districts Table */}
+        {/* Hotspots Table */}
         <Card className="shadow-card">
           <CardHeader>
-            <CardTitle>Hotspot Districts</CardTitle>
-            <CardDescription>Districts requiring immediate attention (coverage &lt;85%)</CardDescription>
+            <CardTitle>Low Coverage Districts</CardTitle>
+            <CardDescription>Sorted by coverage percentage (ascending)</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b border-border">
-                    <th className="pb-3 text-left font-medium">District</th>
-                    <th className="pb-3 text-left font-medium">State</th>
-                    <th className="pb-3 text-left font-medium">Coverage</th>
-                    <th className="pb-3 text-left font-medium">Risk Score</th>
-                    <th className="pb-3 text-left font-medium">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredHotspots.map((district) => (
-                    <tr key={district.id} className="border-b border-border/50">
-                      <td className="py-3 font-medium">{district.name}</td>
-                      <td className="py-3 text-muted-foreground">{district.stateName}</td>
-                      <td className="py-3">
-                        <div className="flex items-center gap-2">
-                          <div className={`h-2 w-2 rounded-full ${getCoverageColor(district.enrollmentCoverage)}`} />
-                          {formatPercentage(district.enrollmentCoverage)}
-                        </div>
-                      </td>
-                      <td className="py-3">
-                        <Badge variant={district.riskScore > 4 ? 'destructive' : 'secondary'}>
-                          {district.riskScore.toFixed(1)}
-                        </Badge>
-                      </td>
-                      <td className="py-3">
-                        <Button variant="ghost" size="sm">View Details</Button>
-                      </td>
+            {hotspots.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <MapPin className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>No hotspots detected. All districts have adequate coverage.</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-border">
+                      <th className="pb-3 text-left font-medium">District</th>
+                      <th className="pb-3 text-left font-medium">State</th>
+                      <th className="pb-3 text-left font-medium">Coverage</th>
+                      <th className="pb-3 text-left font-medium">Enrollments</th>
+                      <th className="pb-3 text-left font-medium">Status</th>
+                      <th className="pb-3 text-left font-medium">Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody>
+                    {hotspots.slice(0, 20).map((hotspot, idx) => (
+                      <tr key={`${hotspot.state}-${hotspot.district}-${idx}`} className="border-b border-border/50">
+                        <td className="py-3 font-medium">{hotspot.district}</td>
+                        <td className="py-3">{hotspot.state}</td>
+                        <td className="py-3">
+                          <span className={`font-semibold ${getCoverageColor(hotspot.coverage)}`}>
+                            {formatPercentage(hotspot.coverage)}
+                          </span>
+                        </td>
+                        <td className="py-3">{hotspot.enrollments.toLocaleString()}</td>
+                        <td className="py-3">
+                          <Badge className={getCoverageBg(hotspot.coverage)}>
+                            {hotspot.coverage < 70 ? 'Critical' : 'Needs Attention'}
+                          </Badge>
+                        </td>
+                        <td className="py-3">
+                          <Button variant="ghost" size="sm">View Details</Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* State Summary */}
+        <Card className="shadow-card">
+          <CardHeader>
+            <CardTitle>State-wise Overview</CardTitle>
+            <CardDescription>Coverage statistics by state</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+              {statesData.slice(0, 12).map((state) => (
+                <div
+                  key={state.state}
+                  className={`p-3 rounded-lg border ${getCoverageBg(state.enrollmentCoverage)}`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="font-medium">{state.state}</span>
+                    <span className={`text-sm ${getCoverageColor(state.enrollmentCoverage)}`}>
+                      {formatPercentage(state.enrollmentCoverage)}
+                    </span>
+                  </div>
+                  <div className="mt-2 bg-muted rounded-full h-2">
+                    <div
+                      className={`h-2 rounded-full ${state.enrollmentCoverage < 70 ? 'bg-destructive' :
+                          state.enrollmentCoverage < 85 ? 'bg-warning' : 'bg-success'
+                        }`}
+                      style={{ width: `${Math.min(100, state.enrollmentCoverage)}%` }}
+                    />
+                  </div>
+                </div>
+              ))}
             </div>
           </CardContent>
         </Card>
