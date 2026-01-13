@@ -526,6 +526,7 @@ def run_scenario():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
+<<<<<<< Updated upstream
 @app.route('/api/v1/details/<district_id>', methods=['GET'])
 def get_district_details(district_id: str):
     """
@@ -706,6 +707,8 @@ def get_district_details(district_id: str):
         }), 500
 
 
+=======
+>>>>>>> Stashed changes
 # ====================
 # Run Server
 # ====================
