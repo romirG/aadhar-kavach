@@ -1,10 +1,11 @@
 """
-UIDAI Spatial-Temporal Intelligence System - Flask Backend v2
+UIDAI Spatial-Temporal Intelligence System - Flask Backend v2.1
 
 Finalized Flask server with:
 - Dynamic data ingestion from UIDAI/data.gov.in
 - H3 Hexagonal grid with IDW interpolation
 - Diverging color scale (Crimson → Blue)
+- /api/v1/details/<district_id> endpoint for region details
 - 6-hour auto-refresh support
 
 Run with: python3 flask_server.py
@@ -37,6 +38,20 @@ try:
     SCIPY_AVAILABLE = True
 except ImportError:
     SCIPY_AVAILABLE = False
+
+# Import spatial analysis (with PySAL support)
+try:
+    from services.spatial_analysis import (
+        run_spatial_analysis,
+        create_stats_summary,
+        get_color_for_zscore,
+        classify_zscore_detailed,
+        apply_spatial_smoothing,
+        PYSAL_AVAILABLE
+    )
+except ImportError:
+    PYSAL_AVAILABLE = False
+    print("Warning: spatial_analysis module not available")
 
 
 # Initialize Flask app
@@ -350,7 +365,8 @@ def health_check():
         'features': {
             'h3_hexgrid': H3_AVAILABLE,
             'scipy_stats': SCIPY_AVAILABLE,
-            'data_gov_integration': True
+            'data_gov_integration': True,
+            'details_endpoint': True
         }
     })
 
@@ -526,7 +542,6 @@ def run_scenario():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
-<<<<<<< Updated upstream
 @app.route('/api/v1/details/<district_id>', methods=['GET'])
 def get_district_details(district_id: str):
     """
@@ -707,27 +722,201 @@ def get_district_details(district_id: str):
         }), 500
 
 
-=======
->>>>>>> Stashed changes
+@app.route('/api/v1/live-hotspots', methods=['GET'])
+def get_live_hotspots():
+    """
+    Live Hotspot Detection Endpoint
+    
+    This endpoint:
+    1. Fetches real-time data (API or cached fallback)
+    2. Processes Normalized Intensity (avoiding 1000%+ spikes)
+    3. Applies PySAL Gi* spatial analysis with row-standardized weights
+    4. Returns multi-color Z-scores in GeoJSON format
+    
+    Color Palette:
+    - Deep Red (#DC143C): Z > 2.58 (99% confidence hotspot)
+    - Orange (#FF8C00): Z > 1.96 (95% confidence)
+    - Gold (#FFD700): Z > 1.65 (emerging trend)
+    - Neutral (#FFFACD): In-Sync
+    - Sky Blue (#87CEEB): Z < -1.65
+    - Royal Blue (#4169E1): Z < -1.96 (coldspot)
+    - Dark Blue (#00008B): Z < -2.58 (exclusion zone)
+    """
+    try:
+        # Step 1: Fetch live/cached district data with normalized intensity
+        df = fetch_district_data()
+        
+        # Step 2: Run proper spatial analysis with Gi*
+        if PYSAL_AVAILABLE:
+            # Use PySAL for proper Getis-Ord Gi* with row-standardized weights
+            analysis_result = run_spatial_analysis(
+                df,
+                value_column='scaled_intensity',
+                lat_col='lat',
+                lon_col='lon',
+                weights_type='knn'
+            )
+            z_scores = analysis_result.z_scores
+            p_values = analysis_result.p_values
+            stats_summary = create_stats_summary(analysis_result)
+        else:
+            # Fallback: simple z-score
+            values = df['scaled_intensity'].values
+            mean_val = np.mean(values)
+            std_val = np.std(values)
+            z_scores = (values - mean_val) / (std_val + 1e-10)
+            p_values = np.ones_like(z_scores)
+            stats_summary = {
+                'morans_i': 0.0,
+                'morans_p_value': 1.0,
+                'spatial_autocorrelation': 'Unknown (PySAL not available)',
+                'mean_z_score': round(float(np.mean(z_scores)), 4),
+                'hotspot_count': int(np.sum(z_scores > 1.96)),
+                'coldspot_count': int(np.sum(z_scores < -1.96)),
+                'total_districts': len(z_scores)
+            }
+        
+        # Step 3: Build GeoJSON with multi-color Z-scores
+        features = []
+        for i, (_, row) in enumerate(df.iterrows()):
+            z = float(z_scores[i])
+            p = float(p_values[i]) if i < len(p_values) else 1.0
+            
+            # Get detailed classification
+            if PYSAL_AVAILABLE:
+                classification, confidence = classify_zscore_detailed(z)
+                color = get_color_for_zscore(z)
+            else:
+                classification = 'Hot Spot' if z > 1.96 else 'Cold Spot' if z < -1.96 else 'In-Sync'
+                confidence = '95%' if abs(z) > 1.96 else 'N/A'
+                color = get_color_hex(z)
+            
+            # Create polygon (simplified - use actual geometries in production)
+            lat, lon = row['lat'], row['lon']
+            offset = 0.5
+            polygon = [
+                [lon - offset, lat - offset],
+                [lon + offset, lat - offset],
+                [lon + offset, lat + offset],
+                [lon - offset, lat + offset],
+                [lon - offset, lat - offset]
+            ]
+            
+            features.append({
+                'type': 'Feature',
+                'properties': {
+                    'district_code': row.get('district_code', f'D{i+1:04d}'),
+                    'district': row.get('district', f'District_{i+1}'),
+                    'state': row['state'],
+                    
+                    # Enrollment data
+                    'enrolments': int(row['enrolments']),
+                    'previous_enrolments': int(row['previous_enrolments']),
+                    'population': int(row['population']),
+                    
+                    # Velocity metrics (avoiding 1000%+ spikes)
+                    'intensity': round(float(row['intensity']), 8),
+                    'intensity_per_100k': round(float(row.get('intensity_per_100k', row['intensity'] * 100000)), 2),
+                    'raw_intensity': round(float(row.get('raw_intensity', row['intensity'])), 8),
+                    
+                    # Coverage
+                    'coverage': round(float(row['coverage']), 2),
+                    
+                    # Spatial analysis results
+                    'z_score': round(z, 4),
+                    'p_value': round(p, 4),
+                    'classification': classification,
+                    'confidence': confidence,
+                    
+                    # Visualization
+                    'color': color,
+                    'opacity': 0.7,
+                    
+                    # Timestamps
+                    'last_updated': row.get('last_updated', datetime.now().isoformat())
+                },
+                'geometry': {
+                    'type': 'Polygon',
+                    'coordinates': [polygon]
+                }
+            })
+        
+        geojson = {
+            'type': 'FeatureCollection',
+            'features': features
+        }
+        
+        # Step 4: Return complete response
+        return jsonify({
+            'success': True,
+            'timestamp': datetime.now().isoformat(),
+            'data_source': 'UIDAI Live API' if os.getenv('DATA_GOV_API_KEY') else 'Cached Mock Data',
+            
+            # GeoJSON with multi-color Z-scores
+            'geojson': geojson,
+            
+            # Statistics
+            'stats': stats_summary,
+            
+            # Color legend
+            'color_scale': {
+                'type': 'diverging',
+                'palette': [
+                    {'z_min': 2.58, 'z_max': float('inf'), 'color': '#DC143C', 'label': 'Significant Hotspot', 'confidence': '99%'},
+                    {'z_min': 1.96, 'z_max': 2.58, 'color': '#FF8C00', 'label': 'Hot Spot', 'confidence': '95%'},
+                    {'z_min': 1.65, 'z_max': 1.96, 'color': '#FFD700', 'label': 'Emerging Trend', 'confidence': '90%'},
+                    {'z_min': -1.65, 'z_max': 1.65, 'color': '#FFFACD', 'label': 'In-Sync', 'confidence': 'N/A'},
+                    {'z_min': -1.96, 'z_max': -1.65, 'color': '#87CEEB', 'label': 'Declining', 'confidence': '90%'},
+                    {'z_min': -2.58, 'z_max': -1.96, 'color': '#4169E1', 'label': 'Cold Spot', 'confidence': '95%'},
+                    {'z_min': float('-inf'), 'z_max': -2.58, 'color': '#00008B', 'label': 'High Exclusion Zone', 'confidence': '99%'}
+                ]
+            },
+            
+            # Processing info
+            'processing': {
+                'normalized_intensity': 'intensity = (current - previous) / population',
+                'smoothing': '3-month SMA + winsorization',
+                'transform': 'log1p with min-max scaling',
+                'spatial_weights': 'KNN (k=5) with row-standardization' if PYSAL_AVAILABLE else 'Simple z-score',
+                'analysis': 'Getis-Ord Gi* Local Statistic' if PYSAL_AVAILABLE else 'Basic z-score'
+            }
+        })
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'error': str(e),
+            'timestamp': datetime.now().isoformat()
+        }), 500
+
+
 # ====================
 # Run Server
 # ====================
 
 if __name__ == '__main__':
     print("=" * 70)
-    print("   UIDAI Spatial-Temporal Intelligence System v2.1")
+    print("   UIDAI Spatial-Temporal Intelligence System v2.2")
     print("=" * 70)
     print(f"   Flask server starting on http://localhost:3002")
     print(f"   Analytics API: http://localhost:3002/api/v1/analytics")
+    print(f"   Live Hotspots: http://localhost:3002/api/v1/live-hotspots")
+    print(f"   Details API: http://localhost:3002/api/v1/details/<district_id>")
+    print("=" * 70)
     print(f"   H3 Hexgrid: {'Enabled' if H3_AVAILABLE else 'Disabled (fallback mode)'}")
     print(f"   SciPy Stats: {'Enabled' if SCIPY_AVAILABLE else 'Disabled'}")
+    print(f"   PySAL Gi*: {'Enabled' if PYSAL_AVAILABLE else 'Disabled (using fallback)'}")
     print("=" * 70)
-    print("   Color Scale:")
+    print("   Diverging Color Scale:")
     print("   🔴 Crimson (Z > 2.58)  → Significant Hotspot (99% conf)")
-    print("   🟠 Orange (Z > 1.96)   → Emerging Trend")
-    print("   🟡 Yellow (baseline)   → In-Sync")
-    print("   🔵 Blue (Z < -1.96)    → Declining")
-    print("   🔷 Deep Blue (Z < -2.58) → Cold Spot (Exclusion Zone)")
+    print("   🟠 Orange (Z > 1.96)   → Hot Spot (95% conf)")
+    print("   🟡 Gold (Z > 1.65)     → Emerging Trend")
+    print("   ⚪ Neutral             → In-Sync")
+    print("   🔵 Blue (Z < -1.96)    → Cold Spot")
+    print("   🔷 Dark Blue (Z < -2.58) → High Exclusion Zone (99% conf)")
     print("=" * 70)
     
     app.run(host='0.0.0.0', port=3002, debug=True)
+

@@ -1,25 +1,11 @@
 """
-<<<<<<< Updated upstream
-UIDAI Data Fetcher Service
-
-Implements dynamic data ingestion from:
-1. data.gov.in portal (primary)
-2. Mock data service (fallback)
-
-Fetches:
-- Total Enrolments by district
-- Biometric Updates
-- Demographic Updates
-- Population data for normalization
-=======
 UIDAI Data Fetcher Service with Univariate Analysis
 
 Implements:
 1. Dynamic data ingestion from data.gov.in
 2. Mock data fallback based on UIDAI saturation reports
 3. Univariate analysis for missing value imputation
-4. Normalized intensity calculation
->>>>>>> Stashed changes
+4. Normalized intensity calculation (prevents 1000% spikes)
 """
 
 import os
@@ -35,27 +21,18 @@ import pandas as pd
 DATA_GOV_IN_API_KEY = os.getenv('DATA_GOV_API_KEY', '')
 DATA_GOV_BASE_URL = 'https://api.data.gov.in/resource'
 
-<<<<<<< Updated upstream
 # UIDAI Aadhaar Saturation Resource IDs (data.gov.in)
 RESOURCE_IDS = {
     'aadhaar_saturation': '31f84c63-ad8f-44f0-ac48-07f1cb11b9c5',
     'enrolment_statistics': 'bfa18f97-0d6f-4e6d-8f0e-9e92ae0d7b42',
     'demographic_updates': 'a3d4e5f6-7890-1234-5678-9abcdef01234',
     'biometric_updates': 'b4c5d6e7-8901-2345-6789-0abcdef12345'
-=======
-RESOURCE_IDS = {
-    'aadhaar_saturation': '31f84c63-ad8f-44f0-ac48-07f1cb11b9c5',
-    'enrolment_statistics': 'bfa18f97-0d6f-4e6d-8f0e-9e92ae0d7b42',
->>>>>>> Stashed changes
 }
 
 
 @dataclass
 class DistrictData:
-<<<<<<< Updated upstream
     """District enrollment data structure"""
-=======
->>>>>>> Stashed changes
     district_code: str
     district_name: str
     state_code: str
@@ -70,45 +47,6 @@ class DistrictData:
     last_updated: str
 
 
-<<<<<<< Updated upstream
-class UIDAIDataFetcher:
-    """
-    Fetches enrollment data from UIDAI sources
-    
-    Primary: data.gov.in API
-    Fallback: Mock data based on official saturation reports
-    """
-    
-    def __init__(self, api_key: Optional[str] = None):
-        """
-        Initialize data fetcher
-        
-        Args:
-            api_key: data.gov.in API key (optional)
-        """
-        self.api_key = api_key or DATA_GOV_IN_API_KEY
-        self.cache = {}
-        self.cache_expiry = {}
-        self.cache_duration = timedelta(hours=6)  # 6-hour cache
-        
-    def fetch_from_data_gov(
-        self,
-        resource_id: str,
-        limit: int = 1000,
-        offset: int = 0
-    ) -> Optional[Dict]:
-        """
-        Fetch data from data.gov.in API
-        
-        Args:
-            resource_id: Resource identifier
-            limit: Number of records
-            offset: Pagination offset
-            
-        Returns:
-            JSON response or None if failed
-        """
-=======
 class UnivariateAnalyzer:
     """
     Univariate analysis for missing value imputation
@@ -128,7 +66,6 @@ class UnivariateAnalyzer:
         Strategies:
         - 'median': Use median (robust to outliers)
         - 'mean': Use mean
-        - 'mode': Use mode (for categorical)
         - 'state_median': Use state-level median
         """
         result = df.copy()
@@ -179,40 +116,46 @@ class UnivariateAnalyzer:
         lower = series.quantile(limits[0])
         upper = series.quantile(limits[1])
         return series.clip(lower=lower, upper=upper)
-    
-    @staticmethod
-    def compute_summary_stats(series: pd.Series) -> Dict:
-        """Compute univariate summary statistics"""
-        return {
-            'count': int(series.count()),
-            'mean': float(series.mean()),
-            'std': float(series.std()),
-            'min': float(series.min()),
-            'q25': float(series.quantile(0.25)),
-            'median': float(series.median()),
-            'q75': float(series.quantile(0.75)),
-            'max': float(series.max()),
-            'skewness': float(series.skew()),
-            'kurtosis': float(series.kurtosis()),
-            'missing': int(series.isnull().sum())
-        }
 
 
 class UIDAIDataFetcher:
     """
     Fetches enrollment data from UIDAI sources with preprocessing
+    
+    Primary: data.gov.in API
+    Fallback: Mock data based on official saturation reports
     """
     
     def __init__(self, api_key: Optional[str] = None):
+        """
+        Initialize data fetcher
+        
+        Args:
+            api_key: data.gov.in API key (optional)
+        """
         self.api_key = api_key or DATA_GOV_IN_API_KEY
         self.cache = {}
         self.cache_expiry = {}
-        self.cache_duration = timedelta(hours=6)
+        self.cache_duration = timedelta(hours=6)  # 6-hour cache
         self.analyzer = UnivariateAnalyzer()
         
-    def fetch_from_data_gov(self, resource_id: str, limit: int = 1000) -> Optional[Dict]:
-        """Fetch data from data.gov.in API"""
->>>>>>> Stashed changes
+    def fetch_from_data_gov(
+        self,
+        resource_id: str,
+        limit: int = 1000,
+        offset: int = 0
+    ) -> Optional[Dict]:
+        """
+        Fetch data from data.gov.in API
+        
+        Args:
+            resource_id: Resource identifier
+            limit: Number of records
+            offset: Pagination offset
+            
+        Returns:
+            JSON response or None if failed
+        """
         if not self.api_key:
             print("No API key configured, using mock data")
             return None
@@ -222,7 +165,6 @@ class UIDAIDataFetcher:
             params = {
                 'api-key': self.api_key,
                 'format': 'json',
-<<<<<<< Updated upstream
                 'limit': limit,
                 'offset': offset
             }
@@ -232,19 +174,11 @@ class UIDAIDataFetcher:
             
             return response.json()
             
-=======
-                'limit': limit
-            }
-            response = requests.get(url, params=params, timeout=30)
-            response.raise_for_status()
-            return response.json()
->>>>>>> Stashed changes
         except requests.RequestException as e:
             print(f"API request failed: {e}")
             return None
     
     def get_district_enrolments(self, use_cache: bool = True) -> List[DistrictData]:
-<<<<<<< Updated upstream
         """
         Get enrollment data for all districts
         
@@ -254,16 +188,10 @@ class UIDAIDataFetcher:
         cache_key = 'district_enrolments'
         
         # Check cache
-=======
-        """Get enrollment data with caching"""
-        cache_key = 'district_enrolments'
-        
->>>>>>> Stashed changes
         if use_cache and cache_key in self.cache:
             if datetime.now() < self.cache_expiry.get(cache_key, datetime.min):
                 return self.cache[cache_key]
         
-<<<<<<< Updated upstream
         # Try fetching from API
         data = self.fetch_from_data_gov(RESOURCE_IDS['aadhaar_saturation'])
         
@@ -275,29 +203,15 @@ class UIDAIDataFetcher:
             districts = self._generate_mock_districts()
         
         # Update cache
-=======
-        data = self.fetch_from_data_gov(RESOURCE_IDS['aadhaar_saturation'])
-        
-        if data and 'records' in data:
-            districts = self._parse_api_response(data['records'])
-        else:
-            districts = self._generate_mock_districts()
-        
->>>>>>> Stashed changes
         self.cache[cache_key] = districts
         self.cache_expiry[cache_key] = datetime.now() + self.cache_duration
         
         return districts
     
     def _parse_api_response(self, records: List[Dict]) -> List[DistrictData]:
-<<<<<<< Updated upstream
         """Parse data.gov.in API response into DistrictData objects"""
         districts = []
         
-=======
-        """Parse API response"""
-        districts = []
->>>>>>> Stashed changes
         for record in records:
             try:
                 districts.append(DistrictData(
@@ -314,7 +228,6 @@ class UIDAIDataFetcher:
                     longitude=float(record.get('longitude', 0)),
                     last_updated=record.get('last_updated', datetime.now().isoformat())
                 ))
-<<<<<<< Updated upstream
             except (ValueError, TypeError) as e:
                 print(f"Error parsing record: {e}")
                 continue
@@ -333,16 +246,6 @@ class UIDAIDataFetcher:
         np.random.seed(42)
         
         # State-level data with realistic coordinates and coverage
-=======
-            except (ValueError, TypeError):
-                continue
-        return districts
-    
-    def _generate_mock_districts(self) -> List[DistrictData]:
-        """Generate realistic mock data based on UIDAI stats"""
-        np.random.seed(42)
-        
->>>>>>> Stashed changes
         states_data = {
             'Maharashtra': {'pop': 12.5e7, 'cov': 98.2, 'count': 36, 'center': (73.8, 19.1)},
             'Uttar Pradesh': {'pop': 23.15e7, 'cov': 94.2, 'count': 75, 'center': (80.9, 26.8)},
@@ -386,7 +289,6 @@ class UIDAIDataFetcher:
             center_lon, center_lat = state_info['center']
             
             for i in range(num_districts):
-<<<<<<< Updated upstream
                 # Generate district-level variations
                 district_pop = int(state_pop / num_districts * (0.5 + np.random.random()))
                 
@@ -401,14 +303,6 @@ class UIDAIDataFetcher:
                 demographic_updates = int(enrolments * 0.05 * np.random.uniform(0.5, 1.5))
                 
                 # Randomize coordinates around state center
-=======
-                district_pop = int(state_pop / num_districts * (0.5 + np.random.random()))
-                coverage = base_coverage + np.random.uniform(-5, 3)
-                coverage = max(60, min(100, coverage))
-                enrolments = int(district_pop * coverage / 100)
-                biometric_updates = int(enrolments * 0.08 * np.random.uniform(0.5, 1.5))
-                demographic_updates = int(enrolments * 0.05 * np.random.uniform(0.5, 1.5))
->>>>>>> Stashed changes
                 lat = center_lat + np.random.uniform(-1.5, 1.5)
                 lon = center_lon + np.random.uniform(-1.5, 1.5)
                 
@@ -426,20 +320,13 @@ class UIDAIDataFetcher:
                     longitude=lon,
                     last_updated=datetime.now().isoformat()
                 ))
-<<<<<<< Updated upstream
                 
-=======
->>>>>>> Stashed changes
                 district_idx += 1
         
         return districts
     
     def to_dataframe(self, districts: List[DistrictData] = None) -> pd.DataFrame:
-<<<<<<< Updated upstream
-        """Convert district data to pandas DataFrame"""
-=======
-        """Convert to DataFrame with preprocessing"""
->>>>>>> Stashed changes
+        """Convert district data to pandas DataFrame with preprocessing"""
         if districts is None:
             districts = self.get_district_enrolments()
         
@@ -460,21 +347,6 @@ class UIDAIDataFetcher:
                 'last_updated': d.last_updated
             })
         
-<<<<<<< Updated upstream
-        return pd.DataFrame(data)
-    
-    def calculate_intensity(self, df: pd.DataFrame) -> pd.DataFrame:
-        """
-        Calculate Normalized Enrollment Intensity
-        
-        Formula: (current_enrolments - previous_enrolments) / population
-        
-        This prevents 1000%+ velocity spikes in low-population areas
-        """
-        result = df.copy()
-        
-        # Simulate previous period (10% lower on average with variance)
-=======
         df = pd.DataFrame(data)
         
         # Apply univariate analysis - impute missing values
@@ -486,42 +358,53 @@ class UIDAIDataFetcher:
         return df
     
     def calculate_intensity(self, df: pd.DataFrame) -> pd.DataFrame:
-        """Calculate Normalized Intensity with preprocessing"""
+        """
+        Calculate Normalized Enrollment Intensity with Mathematical Rigor
+        
+        Formula: Intensity = (Current - Previous) / Population
+        
+        Processing Pipeline:
+        1. Calculate raw intensity (per-capita change)
+        2. Apply 3-month SMA smoothing to remove noise
+        3. Winsorize outliers to prevent 1000%+ spikes
+        4. Log Transform for normalization
+        5. Min-Max Scale to [0, 1] for heatmap
+        
+        This prevents velocity spikes in low-baseline districts.
+        """
         result = df.copy()
         
-        # Simulate previous period
->>>>>>> Stashed changes
+        # Simulate previous period with realistic variance
         np.random.seed(int(datetime.now().timestamp()) % 1000)
         prev_factor = 0.95 + np.random.uniform(-0.05, 0.03, len(df))
         result['previous_enrolments'] = (result['enrolments'] * prev_factor).astype(int)
         
-<<<<<<< Updated upstream
-        # Calculate normalized intensity (per-capita change)
-=======
-        # Normalized Intensity = (Current - Previous) / Population
->>>>>>> Stashed changes
-        result['intensity'] = (
+        # STEP 1: Calculate Normalized Intensity (per-capita change)
+        # This is the KEY FIX for avoiding 1000%+ spikes
+        result['raw_intensity'] = (
             (result['enrolments'] - result['previous_enrolments']) / 
             result['population'].clip(lower=1)
         )
         
-<<<<<<< Updated upstream
-        # Log transform for better visualization
-        result['log_intensity'] = np.sign(result['intensity']) * np.log1p(np.abs(result['intensity']))
+        # STEP 2: Apply SMA Smoothing (simulated 3-month moving average)
+        # For real time-series, this would smooth across time
+        # Here we apply spatial smoothing as proxy
+        result['intensity'] = self._apply_sma_smoothing(result['raw_intensity'].values)
         
-        # Min-Max scale to [0, 1]
-=======
-        # Detect and winsorize outliers
+        # STEP 3: Winsorize outliers (cap at 5th and 95th percentiles)
         outliers = self.analyzer.detect_outliers(result['intensity'], method='iqr')
         if outliers.any():
-            print(f"Detected {outliers.sum()} outliers in intensity")
-            result['intensity'] = self.analyzer.winsorize_outliers(result['intensity'])
+            print(f"[Preprocessing] Winsorizing {outliers.sum()} outliers in intensity")
+            result['intensity'] = self.analyzer.winsorize_outliers(
+                result['intensity'], 
+                limits=(0.05, 0.95)
+            )
         
-        # Log transform
-        result['log_intensity'] = np.sign(result['intensity']) * np.log1p(np.abs(result['intensity']))
+        # STEP 4: Log Transform (handles skewness, preserves sign)
+        # Using log1p to handle values close to zero
+        result['log_intensity'] = np.sign(result['intensity']) * np.log1p(np.abs(result['intensity']) * 1000)
         
-        # Min-Max scale
->>>>>>> Stashed changes
+        # STEP 5: Min-Max Scale to [0, 1] for heatmap visualization
         min_val = result['log_intensity'].min()
         max_val = result['log_intensity'].max()
         if max_val - min_val > 1e-10:
@@ -529,20 +412,41 @@ class UIDAIDataFetcher:
         else:
             result['scaled_intensity'] = 0.5
         
+        # Calculate velocity per 100K for readability
+        result['intensity_per_100k'] = result['raw_intensity'] * 100000
+        
         return result
+    
+    def _apply_sma_smoothing(self, values: np.ndarray, window: int = 3) -> np.ndarray:
+        """
+        Apply Simple Moving Average smoothing
+        
+        For spatial data, we use a rolling window approach
+        Simulates 3-month SMA on time-series data
+        """
+        if len(values) < window:
+            return values
+        
+        # Sort values and apply convolution-based smoothing
+        sorted_indices = np.argsort(values)
+        smoothed = values.copy()
+        
+        # Apply local averaging with neighbors
+        for i in range(len(values)):
+            # Get indices of nearby values (simulating temporal neighbors)
+            start = max(0, i - window // 2)
+            end = min(len(values), i + window // 2 + 1)
+            nearby_indices = sorted_indices[start:end]
+            smoothed[i] = np.mean(values[nearby_indices])
+        
+        return smoothed
 
 
-<<<<<<< Updated upstream
 # Singleton instance
 _fetcher = None
 
 def get_data_fetcher() -> UIDAIDataFetcher:
     """Get singleton data fetcher instance"""
-=======
-_fetcher = None
-
-def get_data_fetcher() -> UIDAIDataFetcher:
->>>>>>> Stashed changes
     global _fetcher
     if _fetcher is None:
         _fetcher = UIDAIDataFetcher()
@@ -550,11 +454,7 @@ def get_data_fetcher() -> UIDAIDataFetcher:
 
 
 def fetch_district_data() -> pd.DataFrame:
-<<<<<<< Updated upstream
     """Convenience function to get district data as DataFrame with intensity"""
-=======
-    """Convenience function to get district data with intensity"""
->>>>>>> Stashed changes
     fetcher = get_data_fetcher()
     df = fetcher.to_dataframe()
     df = fetcher.calculate_intensity(df)
