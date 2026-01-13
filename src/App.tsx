@@ -8,6 +8,7 @@ import Hotspots from "./pages/Hotspots";
 import Forecast from "./pages/Forecast";
 import Anomalies from "./pages/Anomalies";
 import GenderTracker from "./pages/GenderTracker";
+import SpatialIntelligence from "./pages/SpatialIntelligence";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -21,6 +22,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/hotspots" element={<Hotspots />} />
+          <Route path="/spatial-intelligence" element={<SpatialIntelligence />} />
           <Route path="/forecast" element={<Forecast />} />
           <Route path="/anomalies" element={<Anomalies />} />
           <Route path="/gender" element={<GenderTracker />} />
