@@ -5,7 +5,7 @@ import logging
 import uuid
 import time
 from datetime import datetime
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, List
 from fastapi import APIRouter, HTTPException, BackgroundTasks
 import numpy as np
 import pandas as pd
@@ -24,6 +24,8 @@ from data.ingestion import get_data_ingestion
 from data.advanced_preprocessing import MLReadyPipeline, AdvancedFeatureEngineer
 from models.ensemble import EnsembleScorer
 from explainability.feature_attribution import FeatureAttribution, ReasonGenerator
+from explainability.fraud_explainer import FraudExplainer, FraudExplanation
+from explainability.deviation_analyzer import DeviationAnalyzer
 
 logger = logging.getLogger(__name__)
 router = APIRouter()

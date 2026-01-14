@@ -8,7 +8,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from config import get_settings
-from api.routes import datasets, analysis, visualizations
+from api.routes import datasets, analysis, visualizations, selection, reports
 
 # Configure logging
 logging.basicConfig(
@@ -74,8 +74,10 @@ async def health_check():
 
 # Include routers
 app.include_router(datasets.router, prefix="/api/ml", tags=["Datasets"])
+app.include_router(selection.router, prefix="/api/ml", tags=["Dataset Selection"])
 app.include_router(analysis.router, prefix="/api/ml", tags=["Analysis"])
 app.include_router(visualizations.router, prefix="/api/ml", tags=["Visualizations"])
+app.include_router(reports.router, prefix="/api/ml", tags=["Reports"])
 
 
 if __name__ == "__main__":

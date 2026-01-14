@@ -1,0 +1,173 @@
+{
+  "record_id": "UIDAI_10",
+  "pattern_name": "Volume Spike Fraud",
+  "anomaly_score": 0.85,
+  "anomaly_label": "Highly Suspicious",
+  "confidence": 0.9400000000000001,
+  "severity": "CRITICAL",
+  "fraud_pattern": "Geo-Inconsistent Activity: Updates from multiple unusual locations within short timeframe",
+  "primary_reasons": [
+    "\u26a0\ufe0f HIGH RISK: Significant deviations from normal patterns",
+    "The total enrolment count is extremely higher than expected",
+    "The demographic update count is extremely higher than expected",
+    "The weekend activity is slightly lower than expected",
+    "The district activity level is slightly lower than expected (possible volume spike)",
+    "The state activity level is slightly higher than expected (possible volume spike)",
+    "Complex pattern deviates from learned normal behavior"
+  ],
+  "top_features": [
+    {
+      "feature": "total_enrolments",
+      "value": 500.0,
+      "mean": 53.51,
+      "direction": "above",
+      "z_score": 9.800241490078887,
+      "attribution": 0.5891735967137889
+    },
+    {
+      "feature": "total_demo_updates",
+      "value": 200.0,
+      "mean": 23.57,
+      "direction": "above",
+      "z_score": 5.286827363367874,
+      "attribution": 0.31783493254055056
+    },
+    {
+      "feature": "is_weekend",
+      "value": 0.0,
+      "mean": 0.37,
+      "direction": "below",
+      "z_score": -0.7663560447348134,
+      "attribution": 0.046072002174318755
+    },
+    {
+      "feature": "district_event_count",
+      "value": 54.0,
+      "mean": 132.95,
+      "direction": "below",
+      "z_score": -0.5491522194193013,
+      "attribution": 0.033014083233169914
+    },
+    {
+      "feature": "state_event_count",
+      "value": 371.0,
+      "mean": 333.48,
+      "direction": "above",
+      "z_score": 0.1833750041976467,
+      "attribution": 0.011024188626362511
+    }
+  ],
+  "deviations": [
+    {
+      "feature": "total_enrolments",
+      "value": 500.0,
+      "expected": 53.51,
+      "deviation_type": "behavioral",
+      "severity": "critical",
+      "z_score": 9.751117163239556,
+      "explanation": "Total Enrolments is extremely higher than expected (deviates from typical behavior)"
+    },
+    {
+      "feature": "total_demo_updates",
+      "value": 200.0,
+      "expected": 23.57,
+      "deviation_type": "behavioral",
+      "severity": "critical",
+      "z_score": 5.260326808702549,
+      "explanation": "Total Demo Updates is extremely higher than expected (deviates from typical behavior)"
+    },
+    {
+      "feature": "is_weekend",
+      "value": 0.0,
+      "expected": 0.37,
+      "deviation_type": "temporal",
+      "severity": "critical",
+      "z_score": 0.7625146368618582,
+      "explanation": "Is Weekend is extremely lower than expected (unusual for this time period)"
+    },
+    {
+      "feature": "district_event_count",
+      "value": 54.0,
+      "expected": 132.95,
+      "deviation_type": "geographic",
+      "severity": "medium",
+      "z_score": 0.5463995593814227,
+      "explanation": "District Event Count is moderately lower than expected (unusual for this location)"
+    },
+    {
+      "feature": "state_event_count",
+      "value": 371.0,
+      "expected": 333.48,
+      "deviation_type": "geographic",
+      "severity": "low",
+      "z_score": 0.1824558254560322,
+      "explanation": "State Event Count is slightly higher than expected (unusual for this location)"
+    }
+  ],
+  "model_contributions": {
+    "isolation_forest": {
+      "score": 0.7999999999999999,
+      "weight": 0.35,
+      "type": "Tree-based isolation",
+      "finding": "Easily isolated from normal records (statistical outlier)"
+    },
+    "hdbscan": {
+      "score": 0.9,
+      "weight": 0.25,
+      "type": "Density-based clustering",
+      "finding": "Does not belong to any normal behavior cluster"
+    },
+    "autoencoder": {
+      "score": 0.85,
+      "weight": 0.3,
+      "type": "Deep learning reconstruction",
+      "finding": "High reconstruction error (complex pattern deviation)"
+    }
+  },
+  "temporal_flags": [
+    {
+      "type": "monthly_deviation",
+      "feature": "total_enrolments",
+      "severity": "medium",
+      "explanation": "total_enrolments deviates from typical pattern for this month"
+    },
+    {
+      "type": "monthly_deviation",
+      "feature": "total_demo_updates",
+      "severity": "medium",
+      "explanation": "total_demo_updates deviates from typical pattern for this month"
+    }
+  ],
+  "geographic_flags": [
+    {
+      "type": "state_deviation",
+      "feature": "total_enrolments",
+      "location": "Delhi",
+      "severity": "high",
+      "explanation": "total_enrolments is unusual for state Delhi"
+    },
+    {
+      "type": "district_deviation",
+      "feature": "total_enrolments",
+      "location": "District_C",
+      "severity": "high",
+      "explanation": "total_enrolments is unusual for district District_C"
+    },
+    {
+      "type": "state_deviation",
+      "feature": "total_demo_updates",
+      "location": "Delhi",
+      "severity": "high",
+      "explanation": "total_demo_updates is unusual for state Delhi"
+    },
+    {
+      "type": "district_deviation",
+      "feature": "total_demo_updates",
+      "location": "District_C",
+      "severity": "high",
+      "explanation": "total_demo_updates is unusual for district District_C"
+    }
+  ],
+  "recommendation": "IMMEDIATE ACTION REQUIRED: Geo-Inconsistent Activity: Updates from multiple unusual locations within short timeframe. Conduct thorough investigation and consider suspension pending review.",
+  "timestamp": "2026-01-14T18:30:28.087699"
+}

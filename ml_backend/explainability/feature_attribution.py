@@ -184,23 +184,39 @@ class ReasonGenerator:
             "day_of_week": "day of week",
             "is_weekend": "weekend activity",
             "is_month_end": "month-end timing",
+            "is_month_start": "month-start timing",
+            "days_since_start": "days since reference date",
             
             # Geographic features
+            "state": "state location",
+            "district": "district location",
+            "pincode": "pincode area",
             "state_event_count": "state activity level",
             "district_event_count": "district activity level",
             "pincode_event_count": "pincode activity level",
             "state_event_pct": "state's share of events",
             "district_event_pct": "district's share of events",
+            "pincode_region": "pincode region",
             
             # Enrolment features
+            "age_0_5": "infant enrolments (0-5 years)",
+            "age_5_17": "child/teen enrolments (5-17 years)",
+            "age_18_greater": "adult enrolments (18+ years)",
             "total_enrolments": "total enrolment count",
             "age_0_5_ratio": "infant enrolment ratio",
             "age_5_17_ratio": "child/teen enrolment ratio",
             "age_18_greater_ratio": "adult enrolment ratio",
+            "child_heavy": "child-dominated enrolments",
             
-            # Update features
+            # Demographic update features
+            "demo_age_5_17": "demographic updates (5-17 years)",
+            "demo_age_17_": "demographic updates (17+ years)",
             "total_demo_updates": "demographic update count",
             "demo_update_zscore": "demographic update intensity",
+            
+            # Biometric update features
+            "bio_age_5_17": "biometric updates (5-17 years)",
+            "bio_age_17_": "biometric updates (17+ years)",
             "total_bio_updates": "biometric update count",
             "bio_update_zscore": "biometric update intensity",
             
@@ -208,7 +224,14 @@ class ReasonGenerator:
             "row_mean": "average activity level",
             "row_std": "activity variability",
             "row_max": "peak activity",
-            "row_range": "activity range"
+            "row_min": "minimum activity",
+            "row_range": "activity range",
+            
+            # Operator/Center features (if present)
+            "operator_id": "operator identifier",
+            "center_id": "enrollment center",
+            "operator_event_count": "operator activity level",
+            "center_event_count": "center activity level"
         }
     
     def generate_reasons(
@@ -287,38 +310,73 @@ class ReasonGenerator:
         
         return reasons if reasons else ["No specific anomaly patterns identified"]
     
-    def generate_fraud_pattern(self, contributors: List[Dict[str, Any]]) -> str:
+    def generate_fraud_pattern(self, contributors: List[Dict[str, Any]], model_results: Optional[List[Dict[str, Any]]] = None) -> str:
         """
-        Identify the likely fraud pattern based on features.
+        Identify the likely fraud pattern based on features and model results.
         
         Args:
             contributors: Top contributing features
+            model_results: Optional results from individual models
             
         Returns:
             String describing the likely fraud pattern
         """
-        feature_names = [c["feature"] for c in contributors[:3]]
+        feature_names = [c["feature"].lower() for c in contributors[:5]]
+        feature_values = {c["feature"]: c for c in contributors[:5]}
         
-        # Pattern detection logic
-        if any("enrolment" in f or "age" in f for f in feature_names):
-            if any("spike" in f or "count" in f for f in feature_names):
-                return "Volume Spike Fraud: Unusual surge in enrolments"
-            else:
-                return "Demographic Anomaly: Unusual age distribution in enrolments"
+        # Check for geo-inconsistency (high priority)
+        geo_features = [f for f in feature_names if any(x in f for x in ["state", "district", "pincode", "geo"])]
+        if len(geo_features) >= 2:
+            return "Geo-Inconsistent Activity: Updates from multiple unusual locations within short timeframe"
         
-        if any("geo" in f or "state" in f or "district" in f for f in feature_names):
-            return "Geographic Anomaly: Activity pattern inconsistent with location norms"
+        # Check for operator/center fraud
+        operator_features = [f for f in feature_names if "operator" in f or "center" in f]
+        if operator_features:
+            return "Operator/Center Fraud: Unusually high update frequency from same operator or center"
         
-        if any("bio" in f for f in feature_names):
+        # Check for volume spike
+        count_features = [f for f in feature_names if "count" in f or "total" in f]
+        if count_features:
+            # Check if values are significantly high
+            high_counts = [f for f in count_features if feature_values.get(f, {}).get("z_score", 0) > 2]
+            if high_counts:
+                return "Volume Spike Fraud: Abnormally high transaction volume detected"
+        
+        # Check for temporal anomalies
+        temporal_features = [f for f in feature_names if any(x in f for x in ["weekend", "month_end", "month_start", "day_of_week"])]
+        if temporal_features:
+            return "Temporal Anomaly: Activity occurring at unusual times (off-hours/weekends)"
+        
+        # Check for biometric update anomalies
+        bio_features = [f for f in feature_names if "bio" in f]
+        if bio_features:
+            zscore_features = [f for f in bio_features if "zscore" in f]
+            if zscore_features:
+                return "Biometric Update Fraud: Excessive biometric update requests"
             return "Biometric Update Anomaly: Unusual biometric update patterns"
         
-        if any("demo" in f for f in feature_names):
+        # Check for demographic update anomalies
+        demo_features = [f for f in feature_names if "demo" in f]
+        if demo_features:
+            zscore_features = [f for f in demo_features if "zscore" in f]
+            if zscore_features:
+                return "Demographic Update Fraud: Excessive demographic update requests"
             return "Demographic Update Anomaly: Suspicious demographic changes"
         
-        if any("operator" in f or "center" in f for f in feature_names):
-            return "Operator/Center Fraud: Unusual activity from specific operators or centers"
+        # Check for enrolment anomalies
+        enrolment_features = [f for f in feature_names if "enrolment" in f or "age" in f]
+        if enrolment_features:
+            ratio_features = [f for f in enrolment_features if "ratio" in f]
+            if ratio_features:
+                return "Demographic Distribution Fraud: Unusual age distribution in enrolments"
+            return "Enrolment Volume Fraud: Abnormal enrolment patterns detected"
         
-        if any("time" in f or "month" in f or "weekend" in f for f in feature_names):
-            return "Temporal Anomaly: Activity occurring at unusual times"
+        # Check model-specific patterns
+        if model_results:
+            for result in model_results:
+                if result.get("model_name") == "hdbscan" and result.get("score", 0) > 0.7:
+                    return "Behavioral Outlier: Record does not match any known normal behavior cluster"
+                if result.get("model_name") == "autoencoder" and result.get("score", 0) > 0.7:
+                    return "Complex Pattern Fraud: Multi-feature anomaly pattern detected"
         
         return "General Statistical Anomaly: Multiple deviations from normal patterns"

@@ -1,0 +1,591 @@
+{
+  "report_metadata": {
+    "report_id": "UIDAI-FR-20260115-004001",
+    "generated_at": "2026-01-15T00:40:01.724080",
+    "dataset_name": "Aadhaar Monthly Enrolment Data (Demo)",
+    "analysis_period": "1/2024 - 12/2025",
+    "report_version": "2.0"
+  },
+  "executive_summary": {
+    "headline": "31.6% of records flagged as potentially fraudulent",
+    "total_analyzed": 500,
+    "total_anomalies": 158,
+    "risk_breakdown": {
+      "high_risk": 35,
+      "medium_risk": 123,
+      "low_risk": 0
+    },
+    "key_findings": [
+      "Detected 158 potentially fraudulent records out of 500",
+      "High-risk records: 35 (7.0%)",
+      "Highest risk regions: None identified",
+      "Temporal spikes detected in: Weekend"
+    ],
+    "system_confidence": "78%",
+    "urgency": "MEDIUM"
+  },
+  "anomaly_statistics": {
+    "total_records": 500,
+    "anomaly_count": 158,
+    "anomaly_percentage": 31.6,
+    "high_risk_count": 35,
+    "medium_risk_count": 123,
+    "low_risk_count": 0,
+    "mean_anomaly_score": 0.4032,
+    "median_anomaly_score": 0.3724,
+    "max_anomaly_score": 1.0,
+    "std_anomaly_score": 0.2318
+  },
+  "suspicious_entities": {
+    "regions": [
+      {
+        "entity_type": "state",
+        "entity_id": "Maharashtra",
+        "entity_name": "Maharashtra",
+        "anomaly_count": 35,
+        "total_records": 62,
+        "anomaly_rate": 0.5645,
+        "mean_score": 0.541,
+        "max_score": 1.0,
+        "risk_level": "MEDIUM",
+        "key_patterns": [
+          "High anomaly concentration",
+          "Contains extreme outliers"
+        ]
+      },
+      {
+        "entity_type": "state",
+        "entity_id": "Delhi",
+        "entity_name": "Delhi",
+        "anomaly_count": 22,
+        "total_records": 57,
+        "anomaly_rate": 0.386,
+        "mean_score": 0.4233,
+        "max_score": 0.9352,
+        "risk_level": "MEDIUM",
+        "key_patterns": [
+          "High anomaly concentration",
+          "Contains extreme outliers"
+        ]
+      },
+      {
+        "entity_type": "state",
+        "entity_id": "Uttar Pradesh",
+        "entity_name": "Uttar Pradesh",
+        "anomaly_count": 14,
+        "total_records": 39,
+        "anomaly_rate": 0.359,
+        "mean_score": 0.4231,
+        "max_score": 1.0,
+        "risk_level": "MEDIUM",
+        "key_patterns": [
+          "High anomaly concentration",
+          "Contains extreme outliers"
+        ]
+      },
+      {
+        "entity_type": "state",
+        "entity_id": "Andhra Pradesh",
+        "entity_name": "Andhra Pradesh",
+        "anomaly_count": 18,
+        "total_records": 54,
+        "anomaly_rate": 0.3333,
+        "mean_score": 0.4178,
+        "max_score": 1.0,
+        "risk_level": "MEDIUM",
+        "key_patterns": [
+          "High anomaly concentration",
+          "Contains extreme outliers"
+        ]
+      },
+      {
+        "entity_type": "state",
+        "entity_id": "Karnataka",
+        "entity_name": "Karnataka",
+        "anomaly_count": 14,
+        "total_records": 41,
+        "anomaly_rate": 0.3415,
+        "mean_score": 0.4006,
+        "max_score": 0.8208,
+        "risk_level": "MEDIUM",
+        "key_patterns": [
+          "High anomaly concentration"
+        ]
+      },
+      {
+        "entity_type": "state",
+        "entity_id": "Rajasthan",
+        "entity_name": "Rajasthan",
+        "anomaly_count": 16,
+        "total_records": 51,
+        "anomaly_rate": 0.3137,
+        "mean_score": 0.4016,
+        "max_score": 1.0,
+        "risk_level": "MEDIUM",
+        "key_patterns": [
+          "High anomaly concentration",
+          "Contains extreme outliers"
+        ]
+      },
+      {
+        "entity_type": "state",
+        "entity_id": "Gujarat",
+        "entity_name": "Gujarat",
+        "anomaly_count": 12,
+        "total_records": 48,
+        "anomaly_rate": 0.25,
+        "mean_score": 0.3729,
+        "max_score": 1.0,
+        "risk_level": "LOW",
+        "key_patterns": [
+          "High anomaly concentration",
+          "Contains extreme outliers"
+        ]
+      },
+      {
+        "entity_type": "state",
+        "entity_id": "Tamil Nadu",
+        "entity_name": "Tamil Nadu",
+        "anomaly_count": 9,
+        "total_records": 49,
+        "anomaly_rate": 0.1837,
+        "mean_score": 0.3631,
+        "max_score": 0.839,
+        "risk_level": "LOW",
+        "key_patterns": [
+          "High anomaly concentration"
+        ]
+      },
+      {
+        "entity_type": "state",
+        "entity_id": "Bihar",
+        "entity_name": "Bihar",
+        "anomaly_count": 9,
+        "total_records": 44,
+        "anomaly_rate": 0.2045,
+        "mean_score": 0.3376,
+        "max_score": 0.8597,
+        "risk_level": "LOW",
+        "key_patterns": [
+          "High anomaly concentration"
+        ]
+      },
+      {
+        "entity_type": "state",
+        "entity_id": "West Bengal",
+        "entity_name": "West Bengal",
+        "anomaly_count": 9,
+        "total_records": 55,
+        "anomaly_rate": 0.1636,
+        "mean_score": 0.3166,
+        "max_score": 0.7913,
+        "risk_level": "LOW",
+        "key_patterns": [
+          "High anomaly concentration"
+        ]
+      }
+    ],
+    "centers": [
+      {
+        "entity_type": "center",
+        "entity_id": "District_D",
+        "entity_name": "District_D",
+        "anomaly_count": 37,
+        "total_records": 93,
+        "anomaly_rate": 0.3978,
+        "mean_score": 0.4255,
+        "max_score": 1.0,
+        "risk_level": "MEDIUM",
+        "key_patterns": [
+          "Unusually high fraud rate"
+        ]
+      },
+      {
+        "entity_type": "center",
+        "entity_id": "District_B",
+        "entity_name": "District_B",
+        "anomaly_count": 26,
+        "total_records": 95,
+        "anomaly_rate": 0.2737,
+        "mean_score": 0.4061,
+        "max_score": 1.0,
+        "risk_level": "MEDIUM",
+        "key_patterns": [
+          "Unusually high fraud rate"
+        ]
+      },
+      {
+        "entity_type": "center",
+        "entity_id": "District_E",
+        "entity_name": "District_E",
+        "anomaly_count": 38,
+        "total_records": 111,
+        "anomaly_rate": 0.3423,
+        "mean_score": 0.4024,
+        "max_score": 1.0,
+        "risk_level": "MEDIUM",
+        "key_patterns": [
+          "Unusually high fraud rate",
+          "High volume center"
+        ]
+      },
+      {
+        "entity_type": "center",
+        "entity_id": "District_C",
+        "entity_name": "District_C",
+        "anomaly_count": 27,
+        "total_records": 98,
+        "anomaly_rate": 0.2755,
+        "mean_score": 0.3998,
+        "max_score": 1.0,
+        "risk_level": "LOW",
+        "key_patterns": [
+          "Unusually high fraud rate"
+        ]
+      },
+      {
+        "entity_type": "center",
+        "entity_id": "District_A",
+        "entity_name": "District_A",
+        "anomaly_count": 30,
+        "total_records": 103,
+        "anomaly_rate": 0.2913,
+        "mean_score": 0.3843,
+        "max_score": 1.0,
+        "risk_level": "LOW",
+        "key_patterns": [
+          "Unusually high fraud rate"
+        ]
+      }
+    ],
+    "operators": [
+      {
+        "entity_type": "operator",
+        "entity_id": "OP_017",
+        "entity_name": "OP_017",
+        "anomaly_count": 13,
+        "total_records": 33,
+        "anomaly_rate": 0.3939,
+        "mean_score": 0.4653,
+        "max_score": 1.0,
+        "risk_level": "MEDIUM",
+        "key_patterns": [
+          "Suspicious activity pattern"
+        ]
+      },
+      {
+        "entity_type": "operator",
+        "entity_id": "OP_009",
+        "entity_name": "OP_009",
+        "anomaly_count": 11,
+        "total_records": 26,
+        "anomaly_rate": 0.4231,
+        "mean_score": 0.4477,
+        "max_score": 1.0,
+        "risk_level": "MEDIUM",
+        "key_patterns": [
+          "Suspicious activity pattern"
+        ]
+      },
+      {
+        "entity_type": "operator",
+        "entity_id": "OP_008",
+        "entity_name": "OP_008",
+        "anomaly_count": 12,
+        "total_records": 28,
+        "anomaly_rate": 0.4286,
+        "mean_score": 0.4416,
+        "max_score": 1.0,
+        "risk_level": "MEDIUM",
+        "key_patterns": [
+          "Suspicious activity pattern"
+        ]
+      },
+      {
+        "entity_type": "operator",
+        "entity_id": "OP_004",
+        "entity_name": "OP_004",
+        "anomaly_count": 9,
+        "total_records": 21,
+        "anomaly_rate": 0.4286,
+        "mean_score": 0.4359,
+        "max_score": 0.8422,
+        "risk_level": "MEDIUM",
+        "key_patterns": [
+          "Suspicious activity pattern"
+        ]
+      },
+      {
+        "entity_type": "operator",
+        "entity_id": "OP_002",
+        "entity_name": "OP_002",
+        "anomaly_count": 8,
+        "total_records": 21,
+        "anomaly_rate": 0.381,
+        "mean_score": 0.4243,
+        "max_score": 0.9358,
+        "risk_level": "MEDIUM",
+        "key_patterns": [
+          "Suspicious activity pattern"
+        ]
+      },
+      {
+        "entity_type": "operator",
+        "entity_id": "OP_001",
+        "entity_name": "OP_001",
+        "anomaly_count": 8,
+        "total_records": 28,
+        "anomaly_rate": 0.2857,
+        "mean_score": 0.4242,
+        "max_score": 1.0,
+        "risk_level": "MEDIUM",
+        "key_patterns": [
+          "Suspicious activity pattern"
+        ]
+      },
+      {
+        "entity_type": "operator",
+        "entity_id": "OP_010",
+        "entity_name": "OP_010",
+        "anomaly_count": 6,
+        "total_records": 19,
+        "anomaly_rate": 0.3158,
+        "mean_score": 0.4216,
+        "max_score": 0.9315,
+        "risk_level": "MEDIUM",
+        "key_patterns": [
+          "Suspicious activity pattern"
+        ]
+      },
+      {
+        "entity_type": "operator",
+        "entity_id": "OP_014",
+        "entity_name": "OP_014",
+        "anomaly_count": 9,
+        "total_records": 28,
+        "anomaly_rate": 0.3214,
+        "mean_score": 0.4145,
+        "max_score": 0.8899,
+        "risk_level": "MEDIUM",
+        "key_patterns": [
+          "Suspicious activity pattern"
+        ]
+      },
+      {
+        "entity_type": "operator",
+        "entity_id": "OP_013",
+        "entity_name": "OP_013",
+        "anomaly_count": 8,
+        "total_records": 23,
+        "anomaly_rate": 0.3478,
+        "mean_score": 0.4093,
+        "max_score": 0.8859,
+        "risk_level": "MEDIUM",
+        "key_patterns": [
+          "Suspicious activity pattern"
+        ]
+      },
+      {
+        "entity_type": "operator",
+        "entity_id": "OP_015",
+        "entity_name": "OP_015",
+        "anomaly_count": 8,
+        "total_records": 29,
+        "anomaly_rate": 0.2759,
+        "mean_score": 0.4088,
+        "max_score": 1.0,
+        "risk_level": "MEDIUM",
+        "key_patterns": [
+          "Suspicious activity pattern"
+        ]
+      }
+    ]
+  },
+  "temporal_trends": [
+    {
+      "period": "Month 1",
+      "period_type": "monthly",
+      "anomaly_count": 21,
+      "anomaly_rate": 0.3387,
+      "mean_score": 0.4305,
+      "trend_direction": "stable",
+      "spike_detected": "False",
+      "spike_magnitude": null
+    },
+    {
+      "period": "Month 2",
+      "period_type": "monthly",
+      "anomaly_count": 18,
+      "anomaly_rate": 0.3158,
+      "mean_score": 0.3607,
+      "trend_direction": "stable",
+      "spike_detected": "False",
+      "spike_magnitude": null
+    },
+    {
+      "period": "Month 3",
+      "period_type": "monthly",
+      "anomaly_count": 18,
+      "anomaly_rate": 0.2903,
+      "mean_score": 0.3999,
+      "trend_direction": "stable",
+      "spike_detected": "False",
+      "spike_magnitude": null
+    },
+    {
+      "period": "Month 4",
+      "period_type": "monthly",
+      "anomaly_count": 17,
+      "anomaly_rate": 0.2833,
+      "mean_score": 0.3908,
+      "trend_direction": "stable",
+      "spike_detected": "False",
+      "spike_magnitude": null
+    },
+    {
+      "period": "Month 5",
+      "period_type": "monthly",
+      "anomaly_count": 7,
+      "anomaly_rate": 0.1556,
+      "mean_score": 0.3606,
+      "trend_direction": "stable",
+      "spike_detected": "False",
+      "spike_magnitude": null
+    },
+    {
+      "period": "Month 6",
+      "period_type": "monthly",
+      "anomaly_count": 13,
+      "anomaly_rate": 0.4333,
+      "mean_score": 0.4686,
+      "trend_direction": "stable",
+      "spike_detected": "False",
+      "spike_magnitude": null
+    },
+    {
+      "period": "Month 7",
+      "period_type": "monthly",
+      "anomaly_count": 13,
+      "anomaly_rate": 0.4194,
+      "mean_score": 0.4193,
+      "trend_direction": "stable",
+      "spike_detected": "False",
+      "spike_magnitude": null
+    },
+    {
+      "period": "Month 8",
+      "period_type": "monthly",
+      "anomaly_count": 7,
+      "anomaly_rate": 0.2258,
+      "mean_score": 0.36,
+      "trend_direction": "stable",
+      "spike_detected": "False",
+      "spike_magnitude": null
+    },
+    {
+      "period": "Month 9",
+      "period_type": "monthly",
+      "anomaly_count": 12,
+      "anomaly_rate": 0.4,
+      "mean_score": 0.4203,
+      "trend_direction": "stable",
+      "spike_detected": "False",
+      "spike_magnitude": null
+    },
+    {
+      "period": "Month 10",
+      "period_type": "monthly",
+      "anomaly_count": 8,
+      "anomaly_rate": 0.2581,
+      "mean_score": 0.42,
+      "trend_direction": "stable",
+      "spike_detected": "False",
+      "spike_magnitude": null
+    },
+    {
+      "period": "Month 11",
+      "period_type": "monthly",
+      "anomaly_count": 11,
+      "anomaly_rate": 0.3667,
+      "mean_score": 0.4317,
+      "trend_direction": "stable",
+      "spike_detected": "False",
+      "spike_magnitude": null
+    },
+    {
+      "period": "Month 12",
+      "period_type": "monthly",
+      "anomaly_count": 13,
+      "anomaly_rate": 0.4194,
+      "mean_score": 0.4216,
+      "trend_direction": "stable",
+      "spike_detected": "False",
+      "spike_magnitude": null
+    },
+    {
+      "period": "Weekday",
+      "period_type": "weekday",
+      "anomaly_count": 82,
+      "anomaly_rate": 0.2291,
+      "mean_score": 0.3474,
+      "trend_direction": "stable",
+      "spike_detected": "False",
+      "spike_magnitude": null
+    },
+    {
+      "period": "Weekend",
+      "period_type": "weekday",
+      "anomaly_count": 76,
+      "anomaly_rate": 0.5352,
+      "mean_score": 0.5438,
+      "trend_direction": "stable",
+      "spike_detected": "True",
+      "spike_magnitude": null
+    }
+  ],
+  "system_confidence": {
+    "overall_confidence": 0.777,
+    "model_agreement_rate": 0.5,
+    "data_quality_score": 1.0,
+    "coverage_completeness": 1.0,
+    "known_limitations": [
+      "Model trained on historical patterns - may miss novel fraud techniques",
+      "Geographic coverage depends on available data",
+      "Weekend/holiday patterns may differ from training data",
+      "High-volume periods may have different baseline behaviors"
+    ],
+    "recommendations": [
+      "Regular model retraining with new fraud patterns",
+      "Human review of high-risk cases before action",
+      "Cross-reference with external data sources",
+      "Implement feedback loop for false positive reduction"
+    ]
+  },
+  "policy_impact": {
+    "potential_fraud_value": "\u20b917.5 Lakh",
+    "affected_population_estimate": "~395 individuals",
+    "urgency_level": "CRITICAL",
+    "recommended_actions": [
+      "Immediate investigation of high-risk flagged records",
+      "Deploy field verification teams to: identified regions",
+      "Suspend operations at centers with anomaly rate >20%",
+      "Enhanced biometric verification for flagged operators",
+      "Real-time monitoring dashboard for ongoing detection"
+    ],
+    "policy_implications": [
+      "Consider mandatory re-verification for high-risk regions",
+      "Strengthen operator authentication and audit trails",
+      "Implement tiered verification based on risk scores",
+      "Update enrollment center licensing criteria",
+      "Enhance whistleblower mechanisms for fraud reporting"
+    ],
+    "societal_considerations": [
+      "Balance fraud prevention with citizen convenience",
+      "Ensure legitimate users are not inconvenienced by false positives",
+      "Consider impact on vulnerable populations in high-risk areas",
+      "Maintain public trust in Aadhaar system integrity",
+      "Provide clear communication about security measures"
+    ]
+  },
+  "human_readable_report": "\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n                    UIDAI FRAUD DETECTION - EXECUTIVE SUMMARY\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\nGenerated: 2026-01-15 00:40:01\nSystem Confidence: 78%\nUrgency Level: CRITICAL\n\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n                              KEY STATISTICS\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\nTotal Records Analyzed:     500\nAnomalous Records:          158 (31.6%)\n\nRisk Distribution:\n  \u2022 HIGH RISK (>0.8):       35 records\n  \u2022 MEDIUM RISK (0.5-0.8):  123 records\n  \u2022 LOW RISK (<0.5):        0 records\n\nScore Statistics:\n  \u2022 Mean Score:             0.403\n  \u2022 Median Score:           0.372\n  \u2022 Maximum Score:          1.000\n\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n                          TOP SUSPICIOUS REGIONS\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n\n1. Maharashtra [MEDIUM]\n   Anomalies: 35/62 (56.5%)\n   Mean Score: 0.541 | Max Score: 1.000\n   Patterns: High anomaly concentration, Contains extreme outliers\n\n2. Delhi [MEDIUM]\n   Anomalies: 22/57 (38.6%)\n   Mean Score: 0.423 | Max Score: 0.935\n   Patterns: High anomaly concentration, Contains extreme outliers\n\n3. Uttar Pradesh [MEDIUM]\n   Anomalies: 14/39 (35.9%)\n   Mean Score: 0.423 | Max Score: 1.000\n   Patterns: High anomaly concentration, Contains extreme outliers\n\n4. Andhra Pradesh [MEDIUM]\n   Anomalies: 18/54 (33.3%)\n   Mean Score: 0.418 | Max Score: 1.000\n   Patterns: High anomaly concentration, Contains extreme outliers\n\n5. Karnataka [MEDIUM]\n   Anomalies: 14/41 (34.2%)\n   Mean Score: 0.401 | Max Score: 0.821\n   Patterns: High anomaly concentration\n\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n                            TEMPORAL TRENDS\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n\nMonthly Analysis:\n  Month 1: 21 anomalies (33.9%)\n  Month 2: 18 anomalies (31.6%)\n  Month 3: 18 anomalies (29.0%)\n  Month 4: 17 anomalies (28.3%)\n  Month 5: 7 anomalies (15.6%)\n  Month 6: 13 anomalies (43.3%)\n\nWeekday vs Weekend:\n  Weekday: 82 anomalies (22.9%)\n  Weekend: 76 anomalies (53.5%)\n\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n                         POLICY & IMPACT ANALYSIS\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n\nPotential Fraud Value:        \u20b917.5 Lakh\nAffected Population:          ~395 individuals\nUrgency Level:                CRITICAL\n\nRECOMMENDED ACTIONS:\n  \u2022 Immediate investigation of high-risk flagged records\n  \u2022 Deploy field verification teams to: identified regions\n  \u2022 Suspend operations at centers with anomaly rate >20%\n  \u2022 Enhanced biometric verification for flagged operators\n  \u2022 Real-time monitoring dashboard for ongoing detection\n\nPOLICY IMPLICATIONS:\n  \u2022 Consider mandatory re-verification for high-risk regions\n  \u2022 Strengthen operator authentication and audit trails\n  \u2022 Implement tiered verification based on risk scores\n\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n                         SYSTEM CONFIDENCE & LIMITATIONS\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n\nOverall Confidence:           78%\nModel Agreement:              50%\nData Quality Score:           100%\n\nKNOWN LIMITATIONS:\n  \u2022 Model trained on historical patterns - may miss novel fraud techniques\n  \u2022 Geographic coverage depends on available data\n  \u2022 Weekend/holiday patterns may differ from training data\n\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n                            SOCIETAL CONSIDERATIONS\n\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\n  \u2022 Balance fraud prevention with citizen convenience\n  \u2022 Ensure legitimate users are not inconvenienced by false positives\n  \u2022 Consider impact on vulnerable populations in high-risk areas\n\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n                              END OF REPORT\n\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\n"
+}
