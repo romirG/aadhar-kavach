@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
   Users, MapPin, TrendingUp, AlertTriangle, ArrowRight,
-  CheckCircle2, Clock, Activity, Loader2
+  CheckCircle2, Clock, Activity, Loader2, Shield
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useStateData } from '@/hooks/useData';
@@ -256,6 +256,12 @@ export default function Dashboard() {
               <CardDescription>Navigate to key features</CardDescription>
             </CardHeader>
             <CardContent className="space-y-2">
+              <Button variant="default" className="w-full justify-start bg-purple-600 hover:bg-purple-700" asChild>
+                <Link to="/monitoring">
+                  <Shield className="mr-2 h-4 w-4" />
+                  Operations Monitoring
+                </Link>
+              </Button>
               <Button variant="outline" className="w-full justify-start" asChild>
                 <Link to="/hotspots">
                   <MapPin className="mr-2 h-4 w-4 text-destructive" />

@@ -1,9 +1,10 @@
 /**
  * API Service for UIDAI Dashboard
- * Connects to Express backend (port 3001) and ML backend (via proxy)
+ * Connects to Express backend (port 3001) and ML backend (port 8000)
  */
 
 const API_BASE = 'http://localhost:3001/api';
+const ML_API_BASE = 'http://localhost:8000';
 
 // ============== Data Fetching Functions ==============
 
@@ -88,3 +89,121 @@ export async function getAIRecommendation(prompt: string, data?: unknown) {
     if (!response.ok) throw new Error('Failed to get AI recommendation');
     return response.json();
 }
+
+// ============== Intent-Based Monitoring API (NEW) ==============
+
+export interface MonitoringIntent {
+    id: string;
+    display_name: string;
+    description: string;
+}
+
+export interface VigilanceLevel {
+    id: string;
+    name: string;
+    description: string;
+}
+
+export interface MonitoringRequest {
+    intent: string;
+    focus_area?: string;
+    time_period: 'today' | 'last_7_days' | 'this_month';
+    vigilance: 'routine' | 'standard' | 'enhanced' | 'maximum';
+    record_limit?: number;
+}
+
+export interface MonitoringJobResponse {
+    job_id: string;
+    status: 'pending' | 'processing' | 'completed' | 'failed';
+    message: string;
+    estimated_time: string;
+}
+
+export interface RiskSummary {
+    risk_index: number;
+    risk_level: string;
+    confidence: string;
+}
+
+export interface Finding {
+    title: string;
+    description: string;
+    severity: string;
+    location?: string;
+}
+
+export interface ActionItem {
+    action: string;
+    priority: string;
+}
+
+export interface MonitoringResults {
+    job_id: string;
+    status: string;
+    summary: string;
+    risk: RiskSummary;
+    findings: Finding[];
+    recommended_actions: ActionItem[];
+    records_analyzed: number;
+    flagged_for_review: number;
+    cleared: number;
+    analysis_scope: string;
+    time_period: string;
+    completed_at: string;
+    report_id: string;
+}
+
+export interface StatusResponse {
+    job_id: string;
+    status: 'pending' | 'processing' | 'completed' | 'failed';
+    progress: number;
+    message: string;
+    started_at?: string;
+    completed_at?: string;
+}
+
+/**
+ * Get available monitoring intents
+ */
+export async function getMonitoringIntents(): Promise<{ intents: MonitoringIntent[]; vigilance_levels: VigilanceLevel[] }> {
+    const response = await fetch(`${ML_API_BASE}/api/monitor/intents`);
+    if (!response.ok) throw new Error('Failed to fetch monitoring intents');
+    return response.json();
+}
+
+/**
+ * Submit a monitoring request
+ */
+export async function submitMonitoringRequest(request: MonitoringRequest): Promise<MonitoringJobResponse> {
+    const response = await fetch(`${ML_API_BASE}/api/monitor`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(request)
+    });
+    if (!response.ok) throw new Error('Failed to submit monitoring request');
+    return response.json();
+}
+
+/**
+ * Get monitoring job status
+ */
+export async function getMonitoringStatus(jobId: string): Promise<StatusResponse> {
+    const response = await fetch(`${ML_API_BASE}/api/monitor/status/${jobId}`);
+    if (!response.ok) throw new Error('Failed to get monitoring status');
+    return response.json();
+}
+
+/**
+ * Get monitoring results
+ */
+export async function getMonitoringResults(jobId: string): Promise<MonitoringResults> {
+    const response = await fetch(`${ML_API_BASE}/api/monitor/results/${jobId}`);
+    if (!response.ok) {
+        if (response.status === 202) {
+            throw new Error('Results not ready yet');
+        }
+        throw new Error('Failed to get monitoring results');
+    }
+    return response.json();
+}
+
