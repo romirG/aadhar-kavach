@@ -8,11 +8,11 @@ import pandas as pd
 from typing import Dict, List, Optional, Any
 from dataclasses import dataclass
 import asyncio
-import structlog
+import logging
 
 from ..core.config import settings
 
-logger = structlog.get_logger()
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -83,7 +83,7 @@ class DataGovConnector:
                 'fields': list(data.get('records', [{}])[0].keys()) if data.get('records') else []
             }
         except httpx.HTTPError as e:
-            logger.error("API fetch error", resource_id=resource_id, error=str(e))
+            logger.error(f"API fetch error for {resource_id}: {str(e)}")
             return {
                 'success': False,
                 'error': str(e),
@@ -215,7 +215,7 @@ class MultiAPIConnector:
                     'suitability_score': dataset_info.suitability_score
                 })
             except Exception as e:
-                logger.error("Failed to get dataset info", dataset=dataset_key, error=str(e))
+                logger.error(f"Failed to get dataset info for {dataset_key}: {str(e)}")
         
         # Sort by suitability
         datasets.sort(key=lambda x: x['suitability_score'], reverse=True)

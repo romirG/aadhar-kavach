@@ -8,12 +8,15 @@ from pydantic import BaseModel
 from typing import Optional, Dict, Any, List, Literal
 import pandas as pd
 import numpy as np
+import logging
 
 from ..core.config import settings
 from ..services.models import GenderRiskModel
-from ..services.explainers import explain_predictions
 from .train import _models_cache
 from .analyze import _analysis_cache
+
+logger = logging.getLogger(__name__)
+
 
 router = APIRouter(prefix="/predict", tags=["Predictions"])
 
@@ -97,19 +100,23 @@ async def predict(request: PredictRequest):
         # Make predictions
         df_pred = model.predict(df)
         
-        # Compute SHAP explanations
-        explanations = explain_predictions(
-            model.model,
-            df_pred,
-            model.feature_names,
-            output_dir=settings.artifacts_dir / f"predictions_{request.model_id}"
-        )
-        
-        # Build explanations map
-        explanations_map = {
-            exp['index']: exp['top_drivers']
-            for exp in explanations.get('high_risk_explanations', [])
-        }
+        # Try to compute SHAP explanations (optional if SHAP not installed)
+        explanations_map = {}
+        try:
+            from ..services.explainers import explain_predictions, SHAP_AVAILABLE
+            if SHAP_AVAILABLE:
+                explanations = explain_predictions(
+                    model.model,
+                    df_pred,
+                    model.feature_names,
+                    output_dir=settings.artifacts_dir / f"predictions_{request.model_id}"
+                )
+                explanations_map = {
+                    exp['index']: exp['top_drivers']
+                    for exp in explanations.get('high_risk_explanations', [])
+                }
+        except Exception as exp_error:
+            logger.warning(f"SHAP explanations failed: {str(exp_error)}")
         
         # Build predictions
         predictions = []

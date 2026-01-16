@@ -6,7 +6,7 @@ FastAPI application entry point.
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-import structlog
+import logging
 from datetime import datetime
 
 from .core.config import settings
@@ -18,26 +18,12 @@ from .api import (
     report_router
 )
 
-# Configure structured logging
-structlog.configure(
-    processors=[
-        structlog.stdlib.filter_by_level,
-        structlog.stdlib.add_logger_name,
-        structlog.stdlib.add_log_level,
-        structlog.stdlib.PositionalArgumentsFormatter(),
-        structlog.processors.TimeStamper(fmt="iso"),
-        structlog.processors.StackInfoRenderer(),
-        structlog.processors.format_exc_info,
-        structlog.processors.UnicodeDecoder(),
-        structlog.processors.JSONRenderer()
-    ],
-    wrapper_class=structlog.stdlib.BoundLogger,
-    context_class=dict,
-    logger_factory=structlog.PrintLoggerFactory(),
-    cache_logger_on_first_use=True,
+# Configure logging
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
-
-logger = structlog.get_logger()
+logger = logging.getLogger(__name__)
 
 # Create FastAPI app
 app = FastAPI(
@@ -117,13 +103,7 @@ async def health_check():
 @app.exception_handler(Exception)
 async def global_exception_handler(request: Request, exc: Exception):
     """Global exception handler for unhandled errors."""
-    logger.error(
-        "Unhandled exception",
-        path=request.url.path,
-        method=request.method,
-        error=str(exc),
-        exc_info=True
-    )
+    logger.error(f"Unhandled exception: {exc} at {request.url.path}")
     
     return JSONResponse(
         status_code=500,
@@ -138,12 +118,7 @@ async def global_exception_handler(request: Request, exc: Exception):
 @app.on_event("startup")
 async def startup_event():
     """Application startup tasks."""
-    logger.info(
-        "Starting Gender Inclusion Tracker API",
-        host=settings.host,
-        port=settings.port,
-        debug=settings.debug
-    )
+    logger.info(f"Starting Gender Inclusion Tracker API on {settings.host}:{settings.port}")
     
     # Ensure directories exist
     settings.ensure_directories()

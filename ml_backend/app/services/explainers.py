@@ -10,6 +10,7 @@ from pathlib import Path
 import base64
 from io import BytesIO
 
+<<<<<<< HEAD
 import shap
 import matplotlib
 matplotlib.use('Agg')  # Non-interactive backend
@@ -19,6 +20,25 @@ import structlog
 from ..core.config import settings
 
 logger = structlog.get_logger()
+=======
+# Try to import SHAP (optional dependency)
+try:
+    import shap
+    SHAP_AVAILABLE = True
+except ImportError:
+    SHAP_AVAILABLE = False
+    shap = None
+
+import matplotlib
+matplotlib.use('Agg')  # Non-interactive backend
+import matplotlib.pyplot as plt
+import logging
+
+from ..core.config import settings
+
+logger = logging.getLogger(__name__)
+
+>>>>>>> origin/ridwan/gender-tracker-v2
 
 
 class ModelExplainer:

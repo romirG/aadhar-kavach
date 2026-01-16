@@ -25,11 +25,19 @@ from sklearn.preprocessing import StandardScaler
 import lightgbm as lgb
 import optuna
 from imblearn.over_sampling import SMOTE
+<<<<<<< HEAD
 import structlog
 
 from ..core.config import settings
 
 logger = structlog.get_logger()
+=======
+import logging
+
+from ..core.config import settings
+
+logger = logging.getLogger(__name__)
+>>>>>>> origin/ridwan/gender-tracker-v2
 
 
 @dataclass

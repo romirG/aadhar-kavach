@@ -17,11 +17,11 @@ import seaborn as sns
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
-import structlog
+import logging
 
 from ..core.config import settings
 
-logger = structlog.get_logger()
+logger = logging.getLogger(__name__)
 
 # Set style
 plt.style.use('seaborn-v0_8-whitegrid')
@@ -42,7 +42,7 @@ def plotly_to_base64(fig) -> str:
         img_bytes = fig.to_image(format='png', scale=2)
         return base64.b64encode(img_bytes).decode('utf-8')
     except Exception as e:
-        logger.warning("Plotly to image failed, returning empty", error=str(e))
+        logger.warning(f"Plotly to image failed, returning empty: {str(e)}")
         return ""
 
 
@@ -359,14 +359,14 @@ class GenderVisualization:
         try:
             artifacts['coverage_bar'] = self.plot_gender_coverage_bar(df)
         except Exception as e:
-            logger.error("Failed to create coverage bar chart", error=str(e))
+            logger.error(f"Failed to create coverage bar chart: {str(e)}")
             artifacts['coverage_bar'] = {'error': str(e)}
         
         # Correlation heatmap
         try:
             artifacts['correlation_heatmap'] = self.plot_correlation_heatmap(df)
         except Exception as e:
-            logger.error("Failed to create correlation heatmap", error=str(e))
+            logger.error(f"Failed to create correlation heatmap: {str(e)}")
             artifacts['correlation_heatmap'] = {'error': str(e)}
         
         # Feature importance
@@ -374,7 +374,7 @@ class GenderVisualization:
             try:
                 artifacts['feature_importance'] = self.plot_feature_importance(feature_importance)
             except Exception as e:
-                logger.error("Failed to create feature importance chart", error=str(e))
+                logger.error(f"Failed to create feature importance chart: {str(e)}")
                 artifacts['feature_importance'] = {'error': str(e)}
         
         # ROC/PR curves
@@ -382,7 +382,7 @@ class GenderVisualization:
             try:
                 artifacts['roc_pr_curves'] = self.plot_roc_pr_curves(y_true, y_prob)
             except Exception as e:
-                logger.error("Failed to create ROC/PR curves", error=str(e))
+                logger.error(f"Failed to create ROC/PR curves: {str(e)}")
                 artifacts['roc_pr_curves'] = {'error': str(e)}
         
         # State distribution
@@ -390,14 +390,14 @@ class GenderVisualization:
             try:
                 artifacts['state_distribution'] = self.plot_gender_distribution_by_state(df)
             except Exception as e:
-                logger.error("Failed to create state distribution chart", error=str(e))
+                logger.error(f"Failed to create state distribution chart: {str(e)}")
                 artifacts['state_distribution'] = {'error': str(e)}
         
         # Choropleth data
         try:
             artifacts['choropleth_data'] = self.create_choropleth_data(df)
         except Exception as e:
-            logger.error("Failed to prepare choropleth data", error=str(e))
+            logger.error(f"Failed to prepare choropleth data: {str(e)}")
             artifacts['choropleth_data'] = {'error': str(e)}
         
         return artifacts
