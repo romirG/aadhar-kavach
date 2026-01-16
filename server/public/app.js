@@ -62,6 +62,9 @@ async function loadFeature(feature) {
             case 'forecast':
                 await loadForecast();
                 break;
+            case 'monitoring':
+                await loadMonitoring();
+                break;
             default:
                 showError('Unknown feature');
         }
@@ -405,6 +408,261 @@ async function loadForecast() {
     }
 }
 
+async function loadMonitoring() {
+    setTitle('🛡️ Operations Monitoring');
+
+    try {
+        // Check if ML backend and monitoring API are available
+        const intentsResponse = await fetch(`${API_BASE}/monitor/intents`).catch(() => null);
+
+        if (intentsResponse && intentsResponse.ok) {
+            const intentsData = await intentsResponse.json();
+            const intents = intentsData.intents || [];
+            const vigilanceLevels = intentsData.vigilance_levels || [];
+
+            showContent(`
+                <div class="alert alert-info">
+                    <strong>🛡️ Intent-Based Monitoring System</strong><br>
+                    AI-powered monitoring for UIDAI auditors. Select what you want to monitor and the system will analyze operations.
+                </div>
+
+                <div class="monitoring-controls" style="margin-top: 20px;">
+                    <div class="stats-grid">
+                        <div class="stat-card" style="text-align: left;">
+                            <label style="display: block; margin-bottom: 8px; color: #00d4ff;">Monitoring Type</label>
+                            <select id="monitoring-intent" class="monitoring-select">
+                                ${intents.map(i => `<option value="${i.id}">${i.display_name}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div class="stat-card" style="text-align: left;">
+                            <label style="display: block; margin-bottom: 8px; color: #00d4ff;">Focus Area</label>
+                            <select id="monitoring-state" class="monitoring-select">
+                                <option value="All India">All India</option>
+                                <option value="Andhra Pradesh">Andhra Pradesh</option>
+                                <option value="Arunachal Pradesh">Arunachal Pradesh</option>
+                                <option value="Assam">Assam</option>
+                                <option value="Bihar">Bihar</option>
+                                <option value="Chhattisgarh">Chhattisgarh</option>
+                                <option value="Goa">Goa</option>
+                                <option value="Gujarat">Gujarat</option>
+                                <option value="Haryana">Haryana</option>
+                                <option value="Himachal Pradesh">Himachal Pradesh</option>
+                                <option value="Jharkhand">Jharkhand</option>
+                                <option value="Karnataka">Karnataka</option>
+                                <option value="Kerala">Kerala</option>
+                                <option value="Madhya Pradesh">Madhya Pradesh</option>
+                                <option value="Maharashtra">Maharashtra</option>
+                                <option value="Manipur">Manipur</option>
+                                <option value="Meghalaya">Meghalaya</option>
+                                <option value="Mizoram">Mizoram</option>
+                                <option value="Nagaland">Nagaland</option>
+                                <option value="Odisha">Odisha</option>
+                                <option value="Punjab">Punjab</option>
+                                <option value="Rajasthan">Rajasthan</option>
+                                <option value="Sikkim">Sikkim</option>
+                                <option value="Tamil Nadu">Tamil Nadu</option>
+                                <option value="Telangana">Telangana</option>
+                                <option value="Tripura">Tripura</option>
+                                <option value="Uttar Pradesh">Uttar Pradesh</option>
+                                <option value="Uttarakhand">Uttarakhand</option>
+                                <option value="West Bengal">West Bengal</option>
+                                <option value="Delhi">Delhi</option>
+                                <option value="Jammu and Kashmir">Jammu and Kashmir</option>
+                                <option value="Ladakh">Ladakh</option>
+                                <option value="Puducherry">Puducherry</option>
+                            </select>
+                        </div>
+                        <div class="stat-card" style="text-align: left;">
+                            <label style="display: block; margin-bottom: 8px; color: #00d4ff;">Time Period</label>
+                            <select id="monitoring-period" class="monitoring-select">
+                                <option value="today">Today</option>
+                                <option value="last_7_days">Last 7 Days</option>
+                                <option value="this_month">This Month</option>
+                            </select>
+                        </div>
+                        <div class="stat-card" style="text-align: left;">
+                            <label style="display: block; margin-bottom: 8px; color: #00d4ff;">Vigilance Level</label>
+                            <select id="monitoring-vigilance" class="monitoring-select">
+                                ${vigilanceLevels.map(v => `<option value="${v.id}">${v.name}</option>`).join('')}
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <button onclick="startMonitoring()" class="btn-monitor">
+                        🚀 Start Monitoring
+                    </button>
+                </div>
+
+                <div id="monitoring-results" style="margin-top: 20px;"></div>
+            `);
+        } else {
+            showContent(`
+                <div class="alert alert-warning">
+                    <strong>ML Backend Required:</strong> The monitoring system requires the ML backend to be running.
+                </div>
+                <p style="margin-top: 15px; color: #aaa;">
+                    Start the ML backend with:<br>
+                    <code style="background: #333; padding: 5px 10px; border-radius: 5px; display: inline-block; margin-top: 10px;">
+                    cd ml_backend && python main.py
+                    </code>
+                </p>
+            `);
+        }
+    } catch (error) {
+        showError(`Failed to load monitoring: ${error.message}`);
+    }
+}
+
+async function startMonitoring() {
+    const intent = document.getElementById('monitoring-intent').value;
+    const state = document.getElementById('monitoring-state').value;
+    const period = document.getElementById('monitoring-period').value;
+    const vigilance = document.getElementById('monitoring-vigilance').value;
+
+    const resultsDiv = document.getElementById('monitoring-results');
+    resultsDiv.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+
+    try {
+        // Submit monitoring request
+        const submitResponse = await fetch(`${API_BASE}/monitor`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                intent,
+                focus_area: state === 'All India' ? undefined : state,
+                time_period: period,
+                vigilance,
+                record_limit: 1000
+            })
+        });
+
+        if (!submitResponse.ok) throw new Error('Failed to submit monitoring request');
+
+        const job = await submitResponse.json();
+        const jobId = job.job_id;
+
+        // Poll for results
+        let attempts = 0;
+        const maxAttempts = 60;
+
+        const pollResults = async () => {
+            attempts++;
+            const statusResponse = await fetch(`${API_BASE}/monitor/status/${jobId}`);
+            const status = await statusResponse.json();
+
+            resultsDiv.innerHTML = `
+                <div class="alert alert-info">
+                    <strong>Status:</strong> ${status.message}
+                    <div style="margin-top: 10px; background: #333; border-radius: 10px; overflow: hidden;">
+                        <div style="width: ${status.progress}%; height: 6px; background: linear-gradient(90deg, #00d4ff, #7b2ff7);"></div>
+                    </div>
+                    <span style="font-size: 0.85rem; color: #888;">${status.progress}% complete</span>
+                </div>
+            `;
+
+            if (status.status === 'completed') {
+                const resultsResponse = await fetch(`${API_BASE}/monitor/results/${jobId}`);
+                const results = await resultsResponse.json();
+                displayMonitoringResults(results);
+            } else if (status.status === 'failed') {
+                resultsDiv.innerHTML = `<div class="alert alert-critical"><strong>Error:</strong> ${status.message}</div>`;
+            } else if (attempts < maxAttempts) {
+                setTimeout(pollResults, 1000);
+            } else {
+                resultsDiv.innerHTML = '<div class="alert alert-warning">Timeout: Analysis is taking too long.</div>';
+            }
+        };
+
+        pollResults();
+    } catch (error) {
+        resultsDiv.innerHTML = `<div class="alert alert-critical"><strong>Error:</strong> ${error.message}</div>`;
+    }
+}
+
+function displayMonitoringResults(results) {
+    window.lastMonitoringResults = results;
+    const riskColor = results.risk.risk_level === 'Low' ? '#00ff88' :
+        results.risk.risk_level === 'Medium' ? '#ffaa00' : '#ff4444';
+
+    document.getElementById('monitoring-results').innerHTML = `
+        <div class="stats-grid">
+            <div class="stat-card" style="border-left: 4px solid ${riskColor};">
+                <div class="stat-value" style="color: ${riskColor};">${results.risk.risk_index}</div>
+                <div class="stat-label">Risk Index</div>
+                <span style="background: ${riskColor}; color: #000; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem;">
+                    ${results.risk.risk_level}
+                </span>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">${results.records_analyzed.toLocaleString()}</div>
+                <div class="stat-label">Records Analyzed</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" style="color: #ffaa00;">${results.flagged_for_review}</div>
+                <div class="stat-label">Flagged for Review</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" style="color: #00ff88;">${results.cleared}</div>
+                <div class="stat-label">Cleared</div>
+            </div>
+        </div>
+
+        <h3 style="margin: 20px 0 15px; color: #00d4ff;">📋 Monitoring Summary</h3>
+        <div class="alert alert-info">${results.summary}</div>
+
+        <h3 style="margin: 20px 0 15px; color: #ffaa00;">⚠️ Key Observations (${results.findings.length})</h3>
+        ${results.findings.slice(0, 5).map((f, i) => `
+            <div class="alert" style="border-left: 4px solid ${f.severity === 'High' ? '#ff4444' : f.severity === 'Medium' ? '#ffaa00' : '#00d4ff'}; background: ${f.severity === 'High' ? 'rgba(255,68,68,0.15)' : f.severity === 'Medium' ? 'rgba(255,170,0,0.15)' : 'rgba(0,212,255,0.15)'};">
+                <strong>${f.title}</strong> <span style="float: right; color: ${f.severity === 'High' ? '#ff4444' : f.severity === 'Medium' ? '#ffaa00' : '#00d4ff'}; font-weight: bold;">${f.severity}</span>
+                <br><span style="color: #ccc;">${f.description}</span>
+                
+                <div style="margin-top: 10px;">
+                    <button onclick="toggleFindingDetails(${i})" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">
+                        ▼ Details
+                    </button>
+                    <div id="finding-details-${i}" style="display: none; margin-top: 10px; background: rgba(0,0,0,0.4); padding: 15px; border-radius: 6px; border-left: 3px solid ${f.severity === 'High' ? '#ff4444' : f.severity === 'Medium' ? '#ffaa00' : '#00d4ff'};">
+                        <h4 style="color: #ffaa00; margin: 0 0 8px 0; font-size: 0.95rem;">📊 Impact Assessment</h4>
+                        <p style="margin: 0; color: #ccc; font-size: 0.9rem;">${f.details || 'Pattern detected requiring investigation within the focus area.'}</p>
+                    </div>
+                </div>
+            </div>
+        `).join('')}
+        
+        ${results.findings.length > 5 ? `
+            <button id="show-more-findings-btn" onclick="toggleMoreFindings()" style="background: rgba(255,170,0,0.2); border: 1px solid #ffaa00; color: #ffaa00; padding: 10px 20px; border-radius: 6px; cursor: pointer; width: 100%; margin: 10px 0;">
+                ▼ Show ${results.findings.length - 5} More Findings
+            </button>
+            <div id="more-findings" style="display: none;">
+                ${results.findings.slice(5).map((f, i) => `
+                    <div class="alert" style="border-left: 4px solid ${f.severity === 'High' ? '#ff4444' : f.severity === 'Medium' ? '#ffaa00' : '#00d4ff'}; background: ${f.severity === 'High' ? 'rgba(255,68,68,0.15)' : f.severity === 'Medium' ? 'rgba(255,170,0,0.15)' : 'rgba(0,212,255,0.15)'}; margin-top: 10px;">
+                        <strong>${f.title}</strong> <span style="float: right; color: ${f.severity === 'High' ? '#ff4444' : f.severity === 'Medium' ? '#ffaa00' : '#00d4ff'}; font-weight: bold;">${f.severity}</span>
+                        <br><span style="color: #ccc;">${f.description}</span>
+                    </div>
+                `).join('')}
+            </div>
+        ` : ''}
+
+        <h3 style="margin: 20px 0 15px; color: #00ff88;">✅ Recommended Actions (${results.recommended_actions.length})</h3>
+        ${results.recommended_actions.map((a, i) => `
+            <div style="background: ${a.priority === 'Urgent' ? 'rgba(255,68,68,0.2)' : a.priority === 'High' ? 'rgba(255,170,0,0.2)' : 'rgba(0,255,136,0.15)'}; border-left: 4px solid ${a.priority === 'Urgent' ? '#ff4444' : a.priority === 'High' ? '#ffaa00' : '#00ff88'}; padding: 15px; margin-bottom: 12px; border-radius: 6px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <h4 style="margin: 0; color: ${a.priority === 'Urgent' ? '#ff4444' : a.priority === 'High' ? '#ffaa00' : '#00ff88'}; font-size: 1rem;">
+                        ${a.action_title || 'Action ' + (i + 1)}
+                    </h4>
+                    <span style="background: ${a.priority === 'Urgent' ? '#ff4444' : a.priority === 'High' ? '#ffaa00' : '#00ff88'}; color: #000; padding: 3px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: bold;">
+                        ${a.priority}
+                    </span>
+                </div>
+                <p style="margin: 0; color: #ccc; font-size: 0.9rem;">${a.action}</p>
+            </div>
+        `).join('')}
+
+        <p style="text-align: center; color: #666; margin-top: 20px; font-size: 0.85rem;">
+            Report ID: ${results.report_id} | Generated: ${new Date(results.completed_at).toLocaleString()}
+        </p>
+    `;
+}
+
 // =====================================
 // UI Helpers
 // =====================================
@@ -564,3 +822,150 @@ document.addEventListener('DOMContentLoaded', () => {
     // Recheck status every 30 seconds
     setInterval(checkStatus, 30000);
 });
+
+function renderFlaggedRecords(records) {
+    if (!records || records.length === 0) return '';
+
+    // Get headers (exclude internal fields)
+    const ignore = ['flagged_reason', 'risk_score'];
+    const headers = Object.keys(records[0]).filter(k => !ignore.includes(k));
+
+    // Limit columns
+    const cols = headers.slice(0, 6);
+
+    return `
+        <h3 style="margin: 20px 0 15px; color: #ff4444;">🚩 Details: Flagged Records (${records.length})</h3>
+        <p style="color: #aaa; margin-bottom: 15px; font-size: 0.9rem;">
+            The following records were flagged by the anomaly detection engine. Click "Details" to view full record.
+        </p>
+        <div style="overflow-x: auto; background: #222; border-radius: 8px; padding: 10px;">
+            <table class="data-table" style="font-size: 0.9rem;">
+                <thead>
+                    <tr>
+                        <th>Risk Score</th>
+                        <th>Reason</th>
+                        ${cols.map(h => `<th>${h}</th>`).join('')}
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${records.map((r, i) => `
+                        <tr>
+                            <td><span style="color: #ff4444; font-weight: bold;">${r.risk_score}</span></td>
+                            <td>${r.flagged_reason}</td>
+                            ${cols.map(h => `<td>${r[h] || '-'}</td>`).join('')}
+                            <td>
+                                <button onclick="showRecordDetails(${i})" style="background: #00d4ff; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; color: #000; font-weight: bold;">
+                                    View
+                                </button>
+                            </td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Modal for details (hidden by default) -->
+        <script>
+            window.flaggedRecordsData = ${JSON.stringify(records)};
+        </script>
+    `;
+}
+
+function showRecordDetails(index) {
+    const record = window.flaggedRecordsData[index];
+    const html = `
+        <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; display: flex; align-items: center; justify-content: center;">
+            <div style="background: #1a1a1a; padding: 30px; border-radius: 10px; width: 90%; max-width: 600px; border: 1px solid #444; position: relative;">
+                <button onclick="this.closest('div').parentElement.remove()" style="position: absolute; top: 15px; right: 20px; background: none; border: none; color: #fff; font-size: 24px; cursor: pointer;">✕</button>
+                <h2 style="color: #ff4444; margin-bottom: 20px;">🚩 Record Details</h2>
+                
+                <div style="background: #333; padding: 15px; border-radius: 6px; margin-bottom: 20px;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                        <strong style="color: #aaa;">Risk Score:</strong>
+                        <span style="color: #ff4444; font-weight: bold;">${record.risk_score}</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <strong style="color: #aaa;">Reason:</strong>
+                        <span style="color: #fff;">${record.flagged_reason}</span>
+                    </div>
+                </div>
+                
+                <div style="max-height: 400px; overflow-y: auto;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        ${Object.entries(record).filter(([k]) => k !== 'flagged_reason' && k !== 'risk_score').map(([k, v]) => `
+                            <tr>
+                                <td style="padding: 8px; border-bottom: 1px solid #333; color: #00d4ff;">${k}</td>
+                                <td style="padding: 8px; border-bottom: 1px solid #333; color: #fff;">${v}</td>
+                            </tr>
+                        `).join('')}
+                    </table>
+                </div>
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', html);
+}
+
+function showAnalysisEvidence() {
+    const records = window.lastMonitoringResults?.flagged_records;
+    if (!records || records.length === 0) {
+        alert("No specific data evidence available for this analysis.");
+        return;
+    }
+
+    // Create modal wrapper around renderFlaggedRecords output
+    const content = renderFlaggedRecords(records);
+
+    const html = `
+        <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 999; display: flex; align-items: center; justify-content: center;">
+            <div style="background: #151515; padding: 40px; border-radius: 12px; width: 95%; max-width: 1000px; max-height: 90vh; overflow-y: auto; border: 1px solid #333; position: relative; box-shadow: 0 0 50px rgba(0,0,0,0.5);">
+                <button onclick="this.closest('div').parentElement.remove()" style="position: absolute; top: 20px; right: 25px; background: none; border: none; color: #fff; font-size: 28px; cursor: pointer; opacity: 0.7;">✕</button>
+                ${content}
+            </div>
+        </div>
+    `;
+    document.body.insertAdjacentHTML('beforeend', html);
+}
+
+function toggleFindingDetails(index) {
+    const el = document.getElementById(`finding-details-${index}`);
+    if (el) {
+        el.style.display = el.style.display === 'none' ? 'block' : 'none';
+    }
+}
+
+function toggleMoreFindings() {
+    const el = document.getElementById('more-findings');
+    const btn = document.getElementById('show-more-findings-btn');
+    if (el && btn) {
+        if (el.style.display === 'none') {
+            el.style.display = 'block';
+            btn.innerHTML = '▲ Hide Additional Findings';
+        } else {
+            el.style.display = 'none';
+            btn.innerHTML = btn.innerHTML.replace('Hide', 'Show');
+        }
+    }
+}
+
+function renderSimpleRecordTable(records) {
+    if (!records || records.length === 0) return '';
+    const headers = Object.keys(records[0]).filter(k => k !== 'flagged_reason' && k !== 'risk_score').slice(0, 4);
+
+    return `
+    <table style="width:100%; font-size: 0.8rem; border-collapse: collapse; margin-top: 5px;">
+        <thead>
+            <tr style="border-bottom: 1px solid #444; color: #888;">
+                ${headers.map(h => `<th style="text-align:left; padding:4px;">${h}</th>`).join('')}
+            </tr>
+        </thead>
+        <tbody>
+            ${records.map(r => `
+                <tr>
+                    ${headers.map(h => `<td style="padding:4px; color:#ccc;">${r[h]}</td>`).join('')}
+                </tr>
+            `).join('')}
+        </tbody>
+    </table>`;
+}
