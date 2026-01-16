@@ -9,6 +9,7 @@ import Forecast from "./pages/Forecast";
 import Anomalies from "./pages/Anomalies";
 import GenderTracker from "./pages/GenderTracker";
 import RiskPredictor from "./pages/RiskPredictor";
+import Monitoring from "./pages/Monitoring";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -22,6 +23,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/risk-predictor" element={<RiskPredictor />} />
+          <Route path="/monitoring" element={<Monitoring />} />
           <Route path="/hotspots" element={<Hotspots />} />
           <Route path="/forecast" element={<Forecast />} />
           <Route path="/anomalies" element={<Anomalies />} />

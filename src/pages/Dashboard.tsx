@@ -2,64 +2,20 @@ import { DashboardLayout } from '@/components/layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Users, MapPin, TrendingUp, AlertTriangle, ArrowRight, 
-  CheckCircle2, Clock, Activity 
+import {
+  Users, MapPin, TrendingUp, AlertTriangle, ArrowRight,
+  CheckCircle2, Clock, Activity, Loader2, Shield
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { 
-  statesData, getTotalEnrollments, getAverageEnrollmentCoverage, 
-  getTotalPendingUpdates, getActiveAlertsCount, formatNumber, formatPercentage,
-  anomalyAlerts
-} from '@/data/mockData';
-import { 
+import { useStateData } from '@/hooks/useData';
+import {
+  formatNumber, formatPercentage, getTotalEnrollments,
+  getAverageEnrollmentCoverage, getTotalPendingUpdates
+} from '@/data/dataUtils';
+import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell
 } from 'recharts';
-
-const kpiCards = [
-  {
-    title: 'Total Enrollments',
-    value: formatNumber(getTotalEnrollments()),
-    change: '+2.4%',
-    changeType: 'positive' as const,
-    icon: Users,
-    color: 'text-primary',
-    bgColor: 'bg-primary/10',
-  },
-  {
-    title: 'Coverage Rate',
-    value: formatPercentage(getAverageEnrollmentCoverage()),
-    change: '+0.8%',
-    changeType: 'positive' as const,
-    icon: CheckCircle2,
-    color: 'text-success',
-    bgColor: 'bg-success/10',
-  },
-  {
-    title: 'Active Centers',
-    value: formatNumber(statesData.reduce((sum, s) => sum + s.activeCenters, 0)),
-    change: '+12',
-    changeType: 'positive' as const,
-    icon: MapPin,
-    color: 'text-info',
-    bgColor: 'bg-info/10',
-  },
-  {
-    title: 'Pending Updates',
-    value: formatNumber(getTotalPendingUpdates()),
-    change: '-5.2%',
-    changeType: 'negative' as const,
-    icon: Clock,
-    color: 'text-warning',
-    bgColor: 'bg-warning/10',
-  },
-];
-
-const topStates = statesData
-  .sort((a, b) => b.enrolledPopulation - a.enrolledPopulation)
-  .slice(0, 6)
-  .map(s => ({ name: s.code, enrollments: s.enrolledPopulation / 1000000 }));
 
 const genderData = [
   { name: 'Male', value: 52.3, color: 'hsl(var(--chart-1))' },
@@ -67,8 +23,80 @@ const genderData = [
 ];
 
 export default function Dashboard() {
-  const activeAlerts = getActiveAlertsCount();
-  const recentAlerts = anomalyAlerts.slice(0, 3);
+  const { statesData, isLoading, error } = useStateData();
+
+  if (isLoading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-96">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <span className="ml-2">Loading dashboard data...</span>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <DashboardLayout>
+        <div className="flex flex-col items-center justify-center h-96 text-destructive">
+          <AlertTriangle className="h-12 w-12 mb-4" />
+          <p>Error loading data. Make sure the backend servers are running.</p>
+          <p className="text-sm text-muted-foreground mt-2">
+            Start with: cd server && npm run dev
+          </p>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  const totalEnrollments = getTotalEnrollments(statesData);
+  const avgCoverage = getAverageEnrollmentCoverage(statesData);
+  const totalCenters = statesData.reduce((sum, s) => sum + s.activeCenters, 0);
+  const pendingUpdates = getTotalPendingUpdates(statesData);
+
+  const kpiCards = [
+    {
+      title: 'Total Enrollments',
+      value: formatNumber(totalEnrollments),
+      change: '+2.4%',
+      changeType: 'positive' as const,
+      icon: Users,
+      color: 'text-primary',
+      bgColor: 'bg-primary/10',
+    },
+    {
+      title: 'Coverage Rate',
+      value: formatPercentage(avgCoverage),
+      change: '+0.8%',
+      changeType: 'positive' as const,
+      icon: CheckCircle2,
+      color: 'text-success',
+      bgColor: 'bg-success/10',
+    },
+    {
+      title: 'Active Centers',
+      value: formatNumber(totalCenters),
+      change: '+12',
+      changeType: 'positive' as const,
+      icon: MapPin,
+      color: 'text-info',
+      bgColor: 'bg-info/10',
+    },
+    {
+      title: 'Pending Updates',
+      value: formatNumber(pendingUpdates),
+      change: '-5.2%',
+      changeType: 'negative' as const,
+      icon: Clock,
+      color: 'text-warning',
+      bgColor: 'bg-warning/10',
+    },
+  ];
+
+  const topStates = statesData
+    .slice(0, 6)
+    .map(s => ({ name: s.code, enrollments: s.enrolledPopulation / 1000000 }));
 
   return (
     <DashboardLayout>
@@ -78,7 +106,7 @@ export default function Dashboard() {
           <div>
             <h1 className="text-2xl font-bold text-foreground">Dashboard Overview</h1>
             <p className="text-muted-foreground">
-              Real-time Aadhaar enrollment analytics and insights
+              Real-time Aadhaar enrollment analytics from data.gov.in APIs
             </p>
           </div>
           <div className="flex gap-2">
@@ -101,7 +129,7 @@ export default function Dashboard() {
                   <div className={`rounded-lg p-2.5 ${card.bgColor}`}>
                     <card.icon className={`h-5 w-5 ${card.color}`} />
                   </div>
-                  <Badge 
+                  <Badge
                     variant={card.changeType === 'positive' ? 'default' : 'secondary'}
                     className={card.changeType === 'positive' ? 'bg-success/20 text-success' : 'bg-destructive/20 text-destructive'}
                   >
@@ -123,7 +151,7 @@ export default function Dashboard() {
           <Card className="shadow-card">
             <CardHeader>
               <CardTitle className="text-lg">Top States by Enrollment</CardTitle>
-              <CardDescription>Enrolled population in millions</CardDescription>
+              <CardDescription>Enrolled population in millions (from live API)</CardDescription>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={250}>
@@ -131,9 +159,9 @@ export default function Dashboard() {
                   <CartesianGrid strokeDasharray="3 3" className="stroke-border" />
                   <XAxis dataKey="name" className="text-xs" />
                   <YAxis className="text-xs" />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: 'hsl(var(--popover))', 
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: 'hsl(var(--popover))',
                       border: '1px solid hsl(var(--border))',
                       borderRadius: '8px'
                     }}
@@ -174,8 +202,8 @@ export default function Dashboard() {
               <div className="mt-4 flex justify-center gap-6">
                 {genderData.map((item) => (
                   <div key={item.name} className="flex items-center gap-2">
-                    <div 
-                      className="h-3 w-3 rounded-full" 
+                    <div
+                      className="h-3 w-3 rounded-full"
                       style={{ backgroundColor: item.color }}
                     />
                     <span className="text-sm">{item.name}: {item.value}%</span>
@@ -186,46 +214,37 @@ export default function Dashboard() {
           </Card>
         </div>
 
-        {/* Alerts & Quick Actions */}
+        {/* Data Source Info & Quick Actions */}
         <div className="grid gap-6 lg:grid-cols-3">
-          {/* Recent Alerts */}
+          {/* Data Source Info */}
           <Card className="shadow-card lg:col-span-2">
             <CardHeader className="flex flex-row items-center justify-between">
               <div>
-                <CardTitle className="text-lg">Recent Alerts</CardTitle>
-                <CardDescription>{activeAlerts} critical/high priority alerts</CardDescription>
+                <CardTitle className="text-lg">Data Source</CardTitle>
+                <CardDescription>Live data from data.gov.in APIs</CardDescription>
               </div>
-              <Button variant="outline" size="sm" asChild>
-                <Link to="/anomalies">
-                  View All <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </Button>
+              <Badge variant="outline" className="bg-success/10 text-success">
+                <Activity className="mr-1 h-3 w-3" /> Connected
+              </Badge>
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {recentAlerts.map((alert) => (
-                  <div 
-                    key={alert.id} 
-                    className="flex items-center gap-4 rounded-lg border border-border p-3"
-                  >
-                    <div className={`rounded-full p-2 ${
-                      alert.severity === 'critical' ? 'bg-destructive/20' :
-                      alert.severity === 'high' ? 'bg-warning/20' : 'bg-muted'
-                    }`}>
-                      <AlertTriangle className={`h-4 w-4 ${
-                        alert.severity === 'critical' ? 'text-destructive' :
-                        alert.severity === 'high' ? 'text-warning' : 'text-muted-foreground'
-                      }`} />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{alert.location}</p>
-                      <p className="text-xs text-muted-foreground truncate">{alert.description}</p>
-                    </div>
-                    <Badge variant={alert.severity === 'critical' ? 'destructive' : 'secondary'}>
-                      {alert.severity}
-                    </Badge>
+                <div className="flex items-center justify-between p-3 rounded-lg border border-border">
+                  <div>
+                    <p className="font-medium">Aadhaar Monthly Enrolment</p>
+                    <p className="text-sm text-muted-foreground">State-wise enrollment statistics</p>
                   </div>
-                ))}
+                  <Badge variant="secondary">{statesData.length} states</Badge>
+                </div>
+                <div className="flex items-center justify-between p-3 rounded-lg border border-border">
+                  <div>
+                    <p className="font-medium">ML Fraud Detection</p>
+                    <p className="text-sm text-muted-foreground">AI-powered anomaly detection</p>
+                  </div>
+                  <Button variant="outline" size="sm" asChild>
+                    <Link to="/anomalies">Run Analysis</Link>
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>
@@ -237,6 +256,12 @@ export default function Dashboard() {
               <CardDescription>Navigate to key features</CardDescription>
             </CardHeader>
             <CardContent className="space-y-2">
+              <Button variant="default" className="w-full justify-start bg-purple-600 hover:bg-purple-700" asChild>
+                <Link to="/monitoring">
+                  <Shield className="mr-2 h-4 w-4" />
+                  Operations Monitoring
+                </Link>
+              </Button>
               <Button variant="outline" className="w-full justify-start" asChild>
                 <Link to="/hotspots">
                   <MapPin className="mr-2 h-4 w-4 text-destructive" />
@@ -252,7 +277,7 @@ export default function Dashboard() {
               <Button variant="outline" className="w-full justify-start" asChild>
                 <Link to="/anomalies">
                   <AlertTriangle className="mr-2 h-4 w-4 text-warning" />
-                  Check Anomalies
+                  ML Anomaly Detection
                 </Link>
               </Button>
               <Button variant="outline" className="w-full justify-start" asChild>
