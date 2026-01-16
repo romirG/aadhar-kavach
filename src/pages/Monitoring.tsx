@@ -5,10 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AIAnalysisDialog } from "@/components/AIAnalysisDialog";
 import {
     Loader2, Shield, AlertTriangle, CheckCircle2, Clock, Search, FileText,
-    Eye, Flag, Activity, Brain
+    Eye, Flag, Activity
 } from "lucide-react";
 import {
     getMonitoringIntents,
@@ -40,11 +39,6 @@ export default function Monitoring() {
     const [status, setStatus] = useState<StatusResponse | null>(null);
     const [results, setResults] = useState<MonitoringResults | null>(null);
     const [error, setError] = useState<string | null>(null);
-
-    // AI Analysis Dialog State
-    const [aiDialogOpen, setAiDialogOpen] = useState(false);
-    const [selectedFindingIndex, setSelectedFindingIndex] = useState<number>(0);
-    const [selectedFindingTitle, setSelectedFindingTitle] = useState<string>("");
 
     // Load intents on mount
     useEffect(() => {
@@ -135,12 +129,6 @@ export default function Monitoring() {
             case 'critical': return 'bg-destructive text-destructive-foreground';
             default: return 'bg-muted text-muted-foreground';
         }
-    };
-
-    const handleAnalyzeFinding = (index: number, title: string) => {
-        setSelectedFindingIndex(index);
-        setSelectedFindingTitle(title);
-        setAiDialogOpen(true);
     };
 
     return (
@@ -381,9 +369,9 @@ export default function Monitoring() {
                                 {results.findings.map((finding, index) => (
                                     <div key={index} className="rounded-lg border border-border p-4">
                                         <div className="flex items-start justify-between">
-                                            <div className="flex items-start gap-3 flex-1">
+                                            <div className="flex items-start gap-3">
                                                 <AlertTriangle className="h-5 w-5 mt-0.5 text-warning" />
-                                                <div className="flex-1">
+                                                <div>
                                                     <div className="flex items-center gap-2 flex-wrap">
                                                         <span className="font-medium">{finding.title}</span>
                                                         <Badge className={getSeverityStyles(finding.severity)}>
@@ -396,20 +384,9 @@ export default function Monitoring() {
                                                     )}
                                                 </div>
                                             </div>
-                                            <div className="flex gap-2 ml-4">
-                                                <Button 
-                                                    variant="outline" 
-                                                    size="sm"
-                                                    onClick={() => handleAnalyzeFinding(index, finding.title)}
-                                                    className="gap-1"
-                                                >
-                                                    <Brain className="h-3 w-3" /> 
-                                                    AI Analysis
-                                                </Button>
-                                                <Button variant="outline" size="sm">
-                                                    <Eye className="mr-1 h-3 w-3" /> Details
-                                                </Button>
-                                            </div>
+                                            <Button variant="outline" size="sm">
+                                                <Eye className="mr-1 h-3 w-3" /> Details
+                                            </Button>
                                         </div>
                                     </div>
                                 ))}
@@ -457,17 +434,6 @@ export default function Monitoring() {
                     </Card>
                 )}
             </div>
-
-            {/* AI Analysis Dialog */}
-            {jobId && (
-                <AIAnalysisDialog
-                    open={aiDialogOpen}
-                    onOpenChange={setAiDialogOpen}
-                    jobId={jobId}
-                    findingIndex={selectedFindingIndex}
-                    findingTitle={selectedFindingTitle}
-                />
-            )}
         </DashboardLayout>
     );
 }

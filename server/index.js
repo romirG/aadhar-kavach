@@ -22,7 +22,6 @@ import hotspotsRoutes from './routes/hotspots.js';
 const app = express();
 const PORT = process.env.PORT || 3001;
 const ML_BACKEND_URL = process.env.ML_BACKEND_URL || 'http://localhost:8000';
-const MONITORING_BACKEND_URL = process.env.MONITORING_BACKEND_URL || 'http://localhost:8001';
 
 // Middleware
 app.use(cors());
@@ -39,10 +38,10 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/hotspots', hotspotsRoutes);
 
-// Monitoring API Proxy - Forward to operations_monitoring backend on port 8001
+// Monitoring API Proxy - Forward to ML backend /api/monitor endpoints
 app.use('/api/monitor', async (req, res) => {
   try {
-    const targetUrl = `${MONITORING_BACKEND_URL}/api/monitor${req.url}`;
+    const targetUrl = `${ML_BACKEND_URL}/api/monitor${req.url}`;
     console.log(`🛡️  Monitoring API: ${req.method} ${targetUrl}`);
 
     const response = await axios({
