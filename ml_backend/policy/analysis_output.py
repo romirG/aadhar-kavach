@@ -383,33 +383,69 @@ class GovernmentExplanationLayer:
         location = finding.get("location", finding.get("region", "the affected area"))
         
         severity = "Significant" if score > 0.7 else ("Moderate" if score > 0.4 else "Minor")
+        score_pct = int(score * 100)
         
-        if finding_type in ["volume_spike", "volume_surge", "volume"]:
+        if finding_type in ["volume_spike", "volume_surge", "volume", "behavioral_baseline"]:
             return Observation(
                 observation_type=ExplanationType.OBSERVATION,
-                title="Unusual Activity Level",
-                description=f"Operations in {location} showed higher than expected activity levels.",
+                title="Unusual Activity Level Detected",
+                description=f"Operations in {location} showed {score_pct}% deviation from expected activity levels. "
+                           f"This indicates potential processing surges that require verification to "
+                           f"confirm legitimacy. Review daily transaction logs and verify operator workloads.",
                 severity=severity, location=location, time_context=finding.get("time_period")
             )
-        elif finding_type in ["operator", "operator_activity"]:
+        elif finding_type in ["operator", "operator_activity", "operator_profiling"]:
             return Observation(
                 observation_type=ExplanationType.CONCERN,
-                title="Operator Performance Noted",
-                description="Operator work patterns showed deviations from expected norms.",
+                title="Operator Performance Deviation",
+                description=f"Operator work patterns in {location} showed {score_pct}% deviation from established baselines. "
+                           f"Possible causes include: expedited processing, incomplete validations, or "
+                           f"unusual work hours. Verify operator logs and compare with peer performance metrics.",
                 severity=severity, location=location, time_context=None
             )
-        elif finding_type in ["regional", "geographic"]:
+        elif finding_type in ["regional", "geographic", "regional_deviation"]:
             return Observation(
                 observation_type=ExplanationType.OBSERVATION,
-                title=f"Regional Variation - {location}",
-                description=f"Operations in {location} differ from other regions.",
+                title=f"Regional Pattern Variation - {location}",
+                description=f"Operations in {location} differ {score_pct}% from comparable regions. "
+                           f"This could indicate local campaigns, seasonal factors, or data quality issues. "
+                           f"Cross-reference with local event calendars and outreach schedules.",
+                severity=severity, location=location, time_context=None
+            )
+        elif finding_type in ["pattern_consistency", "pattern"]:
+            return Observation(
+                observation_type=ExplanationType.OBSERVATION,
+                title="Inconsistent Pattern Detected",
+                description=f"Operations showed {score_pct}% inconsistency with historical patterns. "
+                           f"This may indicate process changes, new operators, or data entry variations. "
+                           f"Review recent policy changes and operator training records.",
+                severity=severity, location=location, time_context=None
+            )
+        elif finding_type in ["temporal_trend", "temporal"]:
+            return Observation(
+                observation_type=ExplanationType.OBSERVATION,
+                title="Temporal Anomaly Identified",
+                description=f"Time-based analysis revealed {score_pct}% deviation from expected trends. "
+                           f"Operations may be occurring at unusual times or with irregular frequency. "
+                           f"Check system timestamps and operator shift schedules.",
+                severity=severity, location=location, time_context=finding.get("time_period")
+            )
+        elif finding_type in ["cross_reference", "cross_operation"]:
+            return Observation(
+                observation_type=ExplanationType.CONCERN,
+                title="Cross-Operation Correlation Found",
+                description=f"Multiple operation types show {score_pct}% correlated anomalies. "
+                           f"This suggests a systemic issue requiring coordinated investigation. "
+                           f"Review enrollment, update, and biometric operations together.",
                 severity=severity, location=location, time_context=None
             )
         else:
             return Observation(
                 observation_type=ExplanationType.OBSERVATION,
-                title=finding.get("title", "Finding"),
-                description=self._translate(finding.get("description", "Item identified for review.")),
+                title=finding.get("title", f"Finding in {location}"),
+                description=self._translate(finding.get("description", 
+                           f"Item identified for review with {score_pct}% concern level. "
+                           f"This finding warrants verification against operational records.")),
                 severity=severity, location=location, time_context=finding.get("time_period")
             )
     

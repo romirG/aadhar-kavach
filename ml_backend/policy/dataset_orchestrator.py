@@ -308,23 +308,27 @@ class DatasetOrchestrationLayer:
         limit: int
     ) -> pd.DataFrame:
         """
-        Fetch data from live data.gov.in API.
+        Fetch data from Express backend API (which proxies data.gov.in).
         INTERNAL METHOD - source names never exposed.
-        """
-        resource_id = _RESOURCE_IDS.get(source)
-        if not resource_id:
-            # Fallback to enrolment for unknown sources
-            resource_id = _RESOURCE_IDS[_DataSource.ENROLMENT]
         
-        url = f"{self._API_BASE_URL}/{resource_id}"
+        Using Express backend at port 3001 instead of direct data.gov.in
+        because the Express backend handles caching and preprocessing.
+        """
+        # Map internal source to Express API endpoint
+        endpoint_map = {
+            _DataSource.ENROLMENT: "/api/enrolment",
+            _DataSource.DEMOGRAPHIC: "/api/demographic",
+            _DataSource.BIOMETRIC: "/api/biometric"
+        }
+        
+        endpoint = endpoint_map.get(source, "/api/enrolment")
+        url = f"http://localhost:3001{endpoint}"
         params = {
-            "api-key": self._API_KEY,
-            "format": "json",
             "limit": str(min(limit, 5000))
         }
         
         try:
-            # Synchronous request for compatibility
+            # Fetch from Express backend
             with httpx.Client(timeout=30.0) as client:
                 response = client.get(url, params=params)
                 response.raise_for_status()
@@ -332,17 +336,17 @@ class DatasetOrchestrationLayer:
                 
                 records = data.get("records", [])
                 if not records:
-                    logger.warning("API returned empty records")
+                    logger.warning(f"Express API returned empty records for {endpoint}")
                     return pd.DataFrame()
                 
-                logger.info(f"Fetched {len(records)} records from live API")
+                logger.info(f"Fetched {len(records)} records from Express backend {endpoint}")
                 return pd.DataFrame(records)
                 
         except httpx.HTTPError as e:
-            logger.error(f"HTTP error fetching from API: {e}")
+            logger.error(f"HTTP error fetching from Express backend: {e}")
             return pd.DataFrame()
         except Exception as e:
-            logger.error(f"Error fetching from API: {e}")
+            logger.error(f"Error fetching from Express backend: {e}")
             return pd.DataFrame()
     
     async def _fetch_from_api_async(
