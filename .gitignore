@@ -12,10 +12,6 @@ dist
 dist-ssr
 *.local
 
-# Server environment
-server/.env
-ml_backend/.env
-
 # Python
 __pycache__/
 *.py[cod]
