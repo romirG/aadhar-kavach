@@ -516,32 +516,31 @@ async def process_monitoring_job(job_id: str):
         from services.groq_service import groq_service
         
         groq_result = None
-        logger.info(f"Job {job_id}: Flagged records count: {len(flagged_records)}")
+        logger.info(f"Job {job_id}: Flagged records count: {len(flagged_records)}, total_records: {total_records}")
         
-        # Call Groq if we have records OR computed risk context (prevent fallback)
-        # Defaults to 20 if logic allows, so we loosen check
-        if (flagged_records or total_flagged > 0):
-            logger.info(f"Job {job_id}: Calling Groq API")
-            try:
-                groq_result = groq_service.analyze_monitoring_data(
-                    context={
-                        "intent": request_data["intent"],
-                        "focus": request_data.get("focus_area", "All India"),
-                        "risk_level": risk_result.get("risk_metrics", {}).get("risk_level"),
-                        "strategies": [s["strategy_name"] for s in strategy_results],
-                        "total_analyzed": total_records,
-                        "total_flagged": total_flagged
-                    },
-                    flagged_records=flagged_records
-                )
-                if groq_result:
-                    logger.info(f"Job {job_id}: Groq analysis successful")
-                else:
-                    logger.warning(f"Job {job_id}: Groq returned None")
-            except Exception as e:
-                logger.error(f"Job {job_id}: Groq calling error: {e}")
-        else:
-             logger.info(f"Job {job_id}: Skipping Groq (No flags or limit 0)")
+        # ALWAYS call Groq API for fresh dynamic recommendations
+        focus_area_value = request_data.get("focus_area") or "All India"  # Explicit None check
+        logger.info(f"Job {job_id}: Calling Groq API (unconditional) with focus: {focus_area_value}")
+        try:
+            groq_result = groq_service.analyze_monitoring_data(
+                context={
+                    "intent": request_data["intent"],
+                    "focus": focus_area_value,
+                    "risk_level": risk_result.get("risk_metrics", {}).get("risk_level") or "Medium",
+                    "strategies": [s["strategy_name"] for s in strategy_results],
+                    "total_analyzed": total_records,
+                    "total_flagged": total_flagged
+                },
+                flagged_records=flagged_records if flagged_records else [{"sample": "no_records"}]
+            )
+            if groq_result:
+                logger.info(f"Job {job_id}: Groq SUCCESS - got {len(groq_result.get('recommended_actions', []))} actions")
+            else:
+                logger.error(f"Job {job_id}: Groq returned None - check API key")
+        except Exception as e:
+            logger.error(f"Job {job_id}: Groq error: {e}")
+            import traceback
+            traceback.print_exc()
         
         await asyncio.sleep(0.2)
         

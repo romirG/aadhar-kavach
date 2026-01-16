@@ -12,7 +12,7 @@ class GroqService:
         self.settings = get_settings()
         self.api_key = self.settings.groq_api_key
         self.base_url = "https://api.groq.com/openai/v1/chat/completions"
-        self.model = "llama3-70b-8192" 
+        self.model = "llama-3.3-70b-versatile"  # Updated: llama3-70b-8192 was decommissioned 
     
     def analyze_monitoring_data(self, context: Dict[str, Any], flagged_records: List[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
         """
@@ -26,45 +26,69 @@ class GroqService:
         try:
             # Prepare minimal prompt to avoid token limits
             records_str = json.dumps(flagged_records[:5], default=str) # Top 5 records
+            focus_area = context.get('focus') or 'All India'
+            is_nationwide = focus_area == 'All India'
             
-            system_prompt = """
-            You are an Operations Intelligence Engine for a UIDAI Aadhaar Monitoring Platform.
+            location_instruction = ""
+            if is_nationwide:
+                location_instruction = """
+                FOR ALL INDIA SCOPE:
+                - Distribute findings across MULTIPLE states (Maharashtra, Karnataka, Tamil Nadu, UP, Bihar, etc.)
+                - DO NOT focus only on one state
+                - Each finding should mention a different state/region
+                - Cover North, South, East, West regions for comprehensive coverage
+                """
             
-            Your task is to generate the final analysis output in a policy-level, non-technical, decision-oriented format suitable for UIDAI auditors and government officials.
+            system_prompt = f"""
+            You are an Operations Intelligence Engine for UIDAI Aadhaar Monitoring.
             
-            ⚠️ Do NOT expose: Dataset names, ML models, Algorithms, Threshold values, or Raw scores.
+            Generate a professional analysis report in JSON format.
             
-            LANGUAGE & STYLE RULES:
-            - Use formal, neutral, government-appropriate language
-            - No ML terms, no datasets, no algorithms
-            - Avoid absolute claims (“fraud confirmed”)
-            - Use risk-based phrasing, not accusations
+            ⚠️ CRITICAL RULES:
+            - NO meta-language ("this report provides..." or "designed to...")
+            - Write direct findings as the auditing system
+            - NO ML terms or algorithm names
+            - Focus Area: {focus_area}
+            {location_instruction}
             
-            REQUIRED OUTPUT FORMAT (JSON):
-            You must return a SINGLE valid JSON object.
-            
-            {
-                "summary": "Combine the 'Monitoring Summary' and 'Overall Risk Assessment' sections here. Format as a cohesive paragraph.",
+            REQUIRED OUTPUT (JSON):
+            {{
+                "summary": "Direct executive assessment. Start with: 'Monitoring of {focus_area} operations for the review period indicates [risk level] risk.' Describe key concerns factually.",
+                
                 "findings": [
-                    {
-                        "title": "Observation Title (e.g., 'Unusual concentration of activity')",
-                        "description": "Key Observation text. Focus on patterns, trends, and irregularities.",
+                    {{
+                        "title": "Concise finding title",
+                        "description": "Direct factual description",
                         "severity": "High/Medium/Low",
-                        "details": "Combine 'Impacted Scope' and 'Operational Indicators' here. e.g., 'Affected Districts: 2. Activity Deviation: Severe.'"
-                    }
+                        "details": "Specific regions affected within {focus_area}. Impact and compliance risk."
+                    }}
                 ],
+                
                 "recommended_actions": [
-                    {
-                        "action": "Clear, actionable guidance aligned with workflows (e.g., 'Initiate targeted review').",
-                        "priority": "Urgent/Normal"
-                    }
+                    {{
+                        "action_title": "Short action heading (e.g., 'Initiate Targeted Audit')",
+                        "action": "Detailed policy/procedural directive with specific guidance",
+                        "priority": "Urgent/High/Normal"
+                    }}
                 ]
-            }
+            }}
+            
+            Generate 5 findings (High/Medium/Low severity) and 4 actions with titles.
             """
             
             user_prompt = f"""
-            Context: {context}
-            Flagged Records Sample: {records_str}
+            Analysis Context:
+            - Intent: {context.get('intent', 'Operations Monitoring')}
+            - Focus Area: {context.get('focus', 'All India')}
+            - Risk Level: {context.get('risk_level', 'Unknown')}
+            - Strategies Applied: {context.get('strategies', [])}
+            - Records Analyzed: {context.get('total_analyzed', 0)}
+            - Records Flagged: {context.get('total_flagged', 0)}
+            
+            Sample Flagged Records:
+            {records_str}
+            
+            Generate a detailed, actionable analysis report with specific findings and policy recommendations.
             """
             
             payload = {
@@ -73,7 +97,7 @@ class GroqService:
                     {"role": "system", "content": system_prompt},
                     {"role": "user", "content": user_prompt}
                 ],
-                "temperature": 0.3,
+                "temperature": 0.5,
                 "response_format": {"type": "json_object"}
             }
             
@@ -82,7 +106,8 @@ class GroqService:
                 "Content-Type": "application/json"
             }
             
-            response = requests.post(self.base_url, json=payload, headers=headers, timeout=10)
+            logger.info("Calling Groq API for analysis...")
+            response = requests.post(self.base_url, json=payload, headers=headers, timeout=60)
             response.raise_for_status()
             
             result = response.json()

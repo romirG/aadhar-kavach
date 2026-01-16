@@ -596,30 +596,50 @@ function displayMonitoringResults(results) {
         <div class="alert alert-info">${results.summary}</div>
 
         <h3 style="margin: 20px 0 15px; color: #ffaa00;">⚠️ Key Observations (${results.findings.length})</h3>
-        ${results.findings.map((f, i) => `
-            <div class="alert ${f.severity === 'Significant' ? 'alert-critical' : f.severity === 'Moderate' ? 'alert-warning' : 'alert-info'}">
-                <strong>${f.title}</strong> <span style="float: right;">${f.severity}</span>
-                <br><span style="color: #aaa;">${f.description}</span>
-                ${f.location ? `<br><span style="font-size: 0.8rem; color: #888;">📍 ${f.location}</span>` : ''}
+        ${results.findings.slice(0, 5).map((f, i) => `
+            <div class="alert" style="border-left: 4px solid ${f.severity === 'High' ? '#ff4444' : f.severity === 'Medium' ? '#ffaa00' : '#00d4ff'}; background: ${f.severity === 'High' ? 'rgba(255,68,68,0.15)' : f.severity === 'Medium' ? 'rgba(255,170,0,0.15)' : 'rgba(0,212,255,0.15)'};">
+                <strong>${f.title}</strong> <span style="float: right; color: ${f.severity === 'High' ? '#ff4444' : f.severity === 'Medium' ? '#ffaa00' : '#00d4ff'}; font-weight: bold;">${f.severity}</span>
+                <br><span style="color: #ccc;">${f.description}</span>
                 
                 <div style="margin-top: 10px;">
                     <button onclick="toggleFindingDetails(${i})" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">
                         ▼ Details
                     </button>
-                    <div id="finding-details-${i}" style="display: none; margin-top: 10px; background: rgba(0,0,0,0.3); padding: 10px; border-radius: 4px; border-left: 2px solid #ffaa00;">
-                        <p style="margin-bottom: 5px;"><strong>Analysis:</strong> ${f.details || 'Anomaly detected via statistical analysis.'}</p>
-                        ${i === 0 && results.flagged_records && results.flagged_records.length > 0 ? `
-                            <p style="margin-top: 10px; color: #aaa; font-size: 0.8rem;">Relevant Records Sample:</p>
-                            ${renderSimpleRecordTable(results.flagged_records.slice(0, 3))}
-                        ` : ''}
+                    <div id="finding-details-${i}" style="display: none; margin-top: 10px; background: rgba(0,0,0,0.4); padding: 15px; border-radius: 6px; border-left: 3px solid ${f.severity === 'High' ? '#ff4444' : f.severity === 'Medium' ? '#ffaa00' : '#00d4ff'};">
+                        <h4 style="color: #ffaa00; margin: 0 0 8px 0; font-size: 0.95rem;">📊 Impact Assessment</h4>
+                        <p style="margin: 0; color: #ccc; font-size: 0.9rem;">${f.details || 'Pattern detected requiring investigation within the focus area.'}</p>
                     </div>
                 </div>
             </div>
         `).join('')}
+        
+        ${results.findings.length > 5 ? `
+            <button id="show-more-findings-btn" onclick="toggleMoreFindings()" style="background: rgba(255,170,0,0.2); border: 1px solid #ffaa00; color: #ffaa00; padding: 10px 20px; border-radius: 6px; cursor: pointer; width: 100%; margin: 10px 0;">
+                ▼ Show ${results.findings.length - 5} More Findings
+            </button>
+            <div id="more-findings" style="display: none;">
+                ${results.findings.slice(5).map((f, i) => `
+                    <div class="alert" style="border-left: 4px solid ${f.severity === 'High' ? '#ff4444' : f.severity === 'Medium' ? '#ffaa00' : '#00d4ff'}; background: ${f.severity === 'High' ? 'rgba(255,68,68,0.15)' : f.severity === 'Medium' ? 'rgba(255,170,0,0.15)' : 'rgba(0,212,255,0.15)'}; margin-top: 10px;">
+                        <strong>${f.title}</strong> <span style="float: right; color: ${f.severity === 'High' ? '#ff4444' : f.severity === 'Medium' ? '#ffaa00' : '#00d4ff'}; font-weight: bold;">${f.severity}</span>
+                        <br><span style="color: #ccc;">${f.description}</span>
+                    </div>
+                `).join('')}
+            </div>
+        ` : ''}
 
-        <h3 style="margin: 20px 0 15px; color: #00d4ff;">✅ Recommended Actions</h3>
-        ${results.recommended_actions.map(a => `
-            <div class="alert alert-info">✓ ${a.action}</div>
+        <h3 style="margin: 20px 0 15px; color: #00ff88;">✅ Recommended Actions (${results.recommended_actions.length})</h3>
+        ${results.recommended_actions.map((a, i) => `
+            <div style="background: ${a.priority === 'Urgent' ? 'rgba(255,68,68,0.2)' : a.priority === 'High' ? 'rgba(255,170,0,0.2)' : 'rgba(0,255,136,0.15)'}; border-left: 4px solid ${a.priority === 'Urgent' ? '#ff4444' : a.priority === 'High' ? '#ffaa00' : '#00ff88'}; padding: 15px; margin-bottom: 12px; border-radius: 6px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <h4 style="margin: 0; color: ${a.priority === 'Urgent' ? '#ff4444' : a.priority === 'High' ? '#ffaa00' : '#00ff88'}; font-size: 1rem;">
+                        ${a.action_title || 'Action ' + (i + 1)}
+                    </h4>
+                    <span style="background: ${a.priority === 'Urgent' ? '#ff4444' : a.priority === 'High' ? '#ffaa00' : '#00ff88'}; color: #000; padding: 3px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: bold;">
+                        ${a.priority}
+                    </span>
+                </div>
+                <p style="margin: 0; color: #ccc; font-size: 0.9rem;">${a.action}</p>
+            </div>
         `).join('')}
 
         <p style="text-align: center; color: #666; margin-top: 20px; font-size: 0.85rem;">
@@ -897,6 +917,20 @@ function toggleFindingDetails(index) {
     const el = document.getElementById(`finding-details-${index}`);
     if (el) {
         el.style.display = el.style.display === 'none' ? 'block' : 'none';
+    }
+}
+
+function toggleMoreFindings() {
+    const el = document.getElementById('more-findings');
+    const btn = document.getElementById('show-more-findings-btn');
+    if (el && btn) {
+        if (el.style.display === 'none') {
+            el.style.display = 'block';
+            btn.innerHTML = '▲ Hide Additional Findings';
+        } else {
+            el.style.display = 'none';
+            btn.innerHTML = btn.innerHTML.replace('Hide', 'Show');
+        }
     }
 }
 
