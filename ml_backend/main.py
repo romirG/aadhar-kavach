@@ -108,11 +108,17 @@ except ImportError:
     app.include_router(analysis.router, prefix="/api", tags=["Analysis"])
     app.include_router(visualizations.router, prefix="/api", tags=["Visualizations"])
 
-# Biometric Re-enrollment Risk Predictor Router
+# Biometric Re-enrollment Risk Predictor Router (from separate feature module)
 try:
-    from routers.risk_predictor import router as risk_router
+    import sys
+    import os
+    # Add biometric-risk-predictor to path
+    biometric_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'biometric-risk-predictor', 'backend')
+    sys.path.insert(0, biometric_path)
+    
+    from api.risk_predictor import router as risk_router
     app.include_router(risk_router, tags=["Biometric Risk Predictor"])
-    logger.info("✅ Biometric Risk Predictor router loaded")
+    logger.info("✅ Biometric Risk Predictor router loaded from feature module")
 except ImportError as e:
     logger.warning(f"⚠️ Could not load risk predictor router: {e}")
 

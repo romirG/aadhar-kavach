@@ -30,6 +30,14 @@ app.use(express.json());
 // Serve static files from public folder
 app.use(express.static(path.join(__dirname, 'public')));
 
+// Serve Biometric Risk Predictor frontend from its feature module
+app.use('/biometric', express.static(path.join(__dirname, '..', 'biometric-risk-predictor', 'frontend')));
+
+// Redirect risk_analysis.html to new location
+app.get('/risk_analysis.html', (req, res) => {
+    res.redirect('/biometric/');
+});
+
 // Routes
 app.use('/api/enrolment', enrolmentRoutes);
 app.use('/api/demographic', demographicRoutes);
