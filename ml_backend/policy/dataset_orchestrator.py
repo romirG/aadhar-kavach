@@ -391,29 +391,59 @@ class DatasetOrchestrationLayer:
         df: pd.DataFrame,
         time_range: Tuple[datetime, datetime]
     ) -> pd.DataFrame:
-        """Apply time filter to dataframe."""
+        """
+        Apply time filter to dataframe.
+        
+        NOTE: For historical data from data.gov.in API, we take a lenient approach.
+        The API returns aggregated historical data (monthly/yearly) which may not
+        match current date ranges. If no suitable date column is found or parsing
+        fails, we return all data rather than filtering to zero records.
+        """
         if df.empty:
             return df
         
-        # Try common date columns
-        date_cols = ['date', 'Date', 'timestamp', 'created_at', 'month', 'year']
+        original_count = len(df)
         
+        # Try to identify date-like columns
+        date_cols = ['date', 'Date', 'timestamp', 'created_at']
+        month_year_cols_found = 'month' in df.columns or 'year' in df.columns
+        
+        # If we only have month/year columns (typical for data.gov.in aggregated data),
+        # be lenient and return all data - the data is already aggregated monthly
+        if month_year_cols_found and not any(col in df.columns for col in date_cols):
+            logger.debug(f"Data has month/year columns only - keeping all {original_count} records")
+            return df
+        
+        # Try full date columns
         for col in date_cols:
             if col in df.columns:
                 try:
-                    if col in ['month', 'year']:
-                        # Filter by month/year
-                        start_month = time_range[0].month
-                        end_month = time_range[1].month
-                        if 'month' in df.columns:
-                            df = df[(df['month'] >= start_month) & (df['month'] <= end_month)]
+                    # Try multiple date formats common in Indian data
+                    df_copy = df.copy()
+                    date_parsed = pd.to_datetime(df_copy[col], errors='coerce', dayfirst=True)
+                    
+                    # Check if parsing was successful
+                    valid_dates = date_parsed.notna().sum()
+                    if valid_dates < len(df) * 0.5:  # Less than 50% parsed
+                        logger.warning(f"Date parsing failed for column {col} - keeping all records")
+                        continue
+                    
+                    df_copy[col] = date_parsed
+                    filtered = df_copy[(df_copy[col] >= time_range[0]) & (df_copy[col] <= time_range[1])]
+                    
+                    # Only apply filter if it doesn't eliminate all records
+                    if len(filtered) > 0:
+                        logger.debug(f"Time filter applied: {original_count} -> {len(filtered)} records")
+                        return filtered
                     else:
-                        df[col] = pd.to_datetime(df[col], errors='coerce')
-                        df = df[(df[col] >= time_range[0]) & (df[col] <= time_range[1])]
-                    break
-                except Exception:
+                        logger.warning(f"Time filter would remove all records - keeping original {original_count}")
+                        return df
+                except Exception as e:
+                    logger.debug(f"Time filter exception for column {col}: {e}")
                     continue
         
+        # No filtering applied - return original data
+        logger.debug(f"No time filter applied - returning all {original_count} records")
         return df
     
     def _apply_geographic_filter(

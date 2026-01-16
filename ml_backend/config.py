@@ -28,6 +28,7 @@ class Settings(BaseSettings):
     
     # API Keys
     data_gov_api_key: str = ""
+    groq_api_key: str = ""
     gemini_api_key_1: str = ""
     
     # Server Config
