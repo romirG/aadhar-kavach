@@ -108,6 +108,14 @@ except ImportError:
     app.include_router(analysis.router, prefix="/api", tags=["Analysis"])
     app.include_router(visualizations.router, prefix="/api", tags=["Visualizations"])
 
+# Biometric Re-enrollment Risk Predictor Router
+try:
+    from routers.risk_predictor import router as risk_router
+    app.include_router(risk_router, tags=["Biometric Risk Predictor"])
+    logger.info("✅ Biometric Risk Predictor router loaded")
+except ImportError as e:
+    logger.warning(f"⚠️ Could not load risk predictor router: {e}")
+
 
 @app.get("/")
 async def root():

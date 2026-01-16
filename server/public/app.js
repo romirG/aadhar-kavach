@@ -315,6 +315,21 @@ async function loadRiskPredictor() {
                     </div>
                 </div>
                 
+                <div style="text-align: center; margin: 30px 0;">
+                    <a href="/risk_analysis.html" style="
+                        display: inline-block;
+                        background: linear-gradient(135deg, #7b2ff7, #00d4ff);
+                        color: #fff;
+                        text-decoration: none;
+                        padding: 15px 40px;
+                        font-size: 1.1rem;
+                        border-radius: 10px;
+                        transition: all 0.3s;
+                    ">
+                        🧠 Open Full Analysis Tool →
+                    </a>
+                </div>
+                
                 <h3 style="margin: 20px 0 15px;">🧠 Available Models</h3>
                 <div class="alert alert-info">
                     <strong>Random Forest:</strong> Risk classification based on regional features
