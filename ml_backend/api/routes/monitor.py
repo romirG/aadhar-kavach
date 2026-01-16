@@ -17,6 +17,8 @@ DESIGN PRINCIPLES:
 """
 import logging
 import asyncio
+import sys
+import os
 from datetime import datetime
 from typing import Dict, List, Any, Optional
 from enum import Enum
@@ -25,6 +27,13 @@ import uuid
 from fastapi import APIRouter, HTTPException, BackgroundTasks
 from pydantic import BaseModel, Field
 import pandas as pd
+
+# Ensure ml_backend is in path for services imports
+ml_backend_path = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+if ml_backend_path not in sys.path:
+    sys.path.insert(0, ml_backend_path)
+
+from services.groq_service import groq_service
 
 logger = logging.getLogger(__name__)
 
@@ -137,8 +146,11 @@ class Finding(BaseModel):
 
 class ActionItem(BaseModel):
     """Recommended action - plain language."""
+    action_title: Optional[str] = Field(None, description="Action title")
+    action_category: Optional[str] = Field(None, description="Action category")
     action: str
     priority: str
+    target_region: Optional[str] = Field(None, description="Target region for action")
 
 
 class MonitoringResults(BaseModel):
@@ -513,7 +525,7 @@ async def process_monitoring_job(job_id: str):
 
         # Step 7: AI Analysis (Groq)
         update_status(92)
-        from services.groq_service import groq_service
+        # groq_service imported at module level
         
         groq_result = None
         logger.info(f"Job {job_id}: Flagged records count: {len(flagged_records)}, total_records: {total_records}")
@@ -559,17 +571,25 @@ async def process_monitoring_job(job_id: str):
         if groq_result:
             final_summary = groq_result.get("summary", final_summary)
             for f in groq_result.get("findings", []):
+                # Use location from AI if available, else fallback to focus area
+                loc = f.get("location") or f.get("state") # robust check
+                if not loc or loc == "Unknown":
+                    loc = request_data.get("focus_area") or "All India"
+                
                 final_findings.append(Finding(
                     title=f.get("title", "Finding"),
                     description=f.get("description", ""),
                     severity=f.get("severity", "Medium"),
-                    location=request_data.get("focus_area") or "Unknown",
+                    location=loc,
                     details=f.get("details", "")
                 ))
             for a in groq_result.get("recommended_actions", []):
                 final_actions.append(ActionItem(
+                    action_title=a.get("action_title", "Action"),
+                    action_category=a.get("action_category", "Policy"),
                     action=a.get("action", ""),
-                    priority=a.get("priority", "Normal")
+                    priority=a.get("priority", "Normal"),
+                    target_region=a.get("target_region")
                 ))
         else:
             # Fallback
@@ -640,3 +660,71 @@ async def health_check():
         "service": "Monitoring API",
         "active_jobs": len([j for j in _jobs.values() if j["status"] == JobStatus.PROCESSING])
     }
+
+
+# =============================================================================
+# ON-DEMAND AI REGENERATION
+# =============================================================================
+
+class RegenerateAIRequest(BaseModel):
+    """Request to regenerate AI analysis."""
+    focus_area: Optional[str] = Field(default="All India", description="Geographic scope")
+    intent: Optional[str] = Field(default="Operations Monitoring", description="Monitoring intent")
+    findings: List[Dict[str, Any]] = Field(default=[], description="Current findings to analyze")
+    risk_level: Optional[str] = Field(default="Medium", description="Current risk level")
+    total_analyzed: Optional[int] = Field(default=0, description="Total records analyzed")
+    total_flagged: Optional[int] = Field(default=0, description="Total flagged records")
+
+
+@router.post("/regenerate-ai")
+async def regenerate_ai_analysis(request: RegenerateAIRequest):
+    """
+    Regenerate AI analysis on demand.
+    Calls Groq API with fresh random seed for unique recommendations each time.
+    """
+    try:
+        context = {
+            "intent": request.intent,
+            "focus": request.focus_area,
+            "risk_level": request.risk_level,
+            "strategies": [],
+            "total_analyzed": request.total_analyzed,
+            "total_flagged": request.total_flagged
+        }
+        
+        # Convert findings to flagged records format
+        flagged_records = []
+        for f in request.findings[:5]:
+            flagged_records.append({
+                "state": f.get("location", "Unknown"),
+                "issue": f.get("title", ""),
+                "severity": f.get("severity", "Medium"),
+                "details": f.get("description", "")
+            })
+        
+        # Call Groq for fresh analysis
+        result = groq_service.analyze_monitoring_data(context, flagged_records)
+        
+        if result:
+            return {
+                "success": True,
+                "model": groq_service.model,
+                "model_provider": "Groq (LPU Inference)",
+                "summary": result.get("summary", ""),
+                "findings": result.get("findings", []),
+                "recommended_actions": result.get("recommended_actions", []),
+                "generated_at": datetime.now().isoformat()
+            }
+        else:
+            return {
+                "success": False,
+                "error": "AI analysis unavailable - check API key",
+                "model": groq_service.model
+            }
+    except Exception as e:
+        logger.error(f"AI regeneration failed: {e}")
+        return {
+            "success": False,
+            "error": str(e)
+        }
+
