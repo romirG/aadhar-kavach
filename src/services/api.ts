@@ -258,6 +258,108 @@ export const healthApi = {
     check: () => fetchAPI<{ status: string; timestamp: string }>('/health'),
 };
 
+// =====================================
+// Intent-Based Monitoring API (ML Backend)
+// =====================================
+
+const ML_API_BASE = 'http://localhost:8000';
+
+export interface MonitoringIntent {
+    id: string;
+    display_name: string;
+    description: string;
+    signals: string[];
+}
+
+export interface VigilanceLevel {
+    id: string;
+    name: string;
+    description: string;
+}
+
+export interface MonitoringRequest {
+    intent: string;
+    focus_area?: string;
+    time_period: 'today' | 'last_7_days' | 'this_month';
+    vigilance: 'routine' | 'standard' | 'enhanced' | 'maximum';
+    record_limit?: number;
+}
+
+export interface MonitoringJobResponse {
+    job_id: string;
+    status: string;
+    message: string;
+}
+
+export interface RiskSummary {
+    risk_index: number;
+    risk_level: string;
+    confidence: string;
+}
+
+export interface Finding {
+    title: string;
+    description: string;
+    severity: string;
+    location?: string;
+}
+
+export interface ActionItem {
+    action: string;
+    priority: string;
+}
+
+export interface MonitoringResults {
+    job_id: string;
+    status: string;
+    summary: string;
+    risk: RiskSummary;
+    findings: Finding[];
+    recommended_actions: ActionItem[];
+    records_analyzed: number;
+    flagged_for_review: number;
+    cleared: number;
+    time_period: string;
+    analysis_scope: string;
+    report_id: string;
+    completed_at: string;
+}
+
+export interface StatusResponse {
+    job_id: string;
+    status: string;
+    progress: number;
+    message: string;
+}
+
+export async function getMonitoringIntents(): Promise<{ intents: MonitoringIntent[]; vigilance_levels: VigilanceLevel[] }> {
+    const response = await fetch(`${ML_API_BASE}/api/monitor/intents`);
+    if (!response.ok) throw new Error('Failed to fetch monitoring intents');
+    return response.json();
+}
+
+export async function submitMonitoringRequest(request: MonitoringRequest): Promise<MonitoringJobResponse> {
+    const response = await fetch(`${ML_API_BASE}/api/monitor`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(request)
+    });
+    if (!response.ok) throw new Error('Failed to submit monitoring request');
+    return response.json();
+}
+
+export async function getMonitoringStatus(jobId: string): Promise<StatusResponse> {
+    const response = await fetch(`${ML_API_BASE}/api/monitor/status/${jobId}`);
+    if (!response.ok) throw new Error('Failed to get monitoring status');
+    return response.json();
+}
+
+export async function getMonitoringResults(jobId: string): Promise<MonitoringResults> {
+    const response = await fetch(`${ML_API_BASE}/api/monitor/results/${jobId}`);
+    if (!response.ok) throw new Error('Failed to get monitoring results');
+    return response.json();
+}
+
 export default {
     hotspot: hotspotApi,
     ai: aiApi,

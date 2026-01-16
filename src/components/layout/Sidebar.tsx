@@ -18,6 +18,7 @@ import {
   HelpCircle,
   Fingerprint,
   Shield,
+  Globe,
 } from 'lucide-react';
 
 interface NavItem {
@@ -31,6 +32,7 @@ const mainNavItems: NavItem[] = [
   { title: 'Dashboard', href: '/', icon: LayoutDashboard },
   { title: 'Risk Predictor', href: '/risk-predictor', icon: Fingerprint },
   { title: 'Operations Monitoring', href: '/monitoring', icon: Shield },
+  { title: 'Spatial Intelligence', href: '/spatial-intelligence', icon: Globe },
   { title: 'Geographic Hotspots', href: '/hotspots', icon: MapPin },
   { title: 'Enrollment Forecast', href: '/forecast', icon: TrendingUp },
   { title: 'Anomaly Detection', href: '/anomalies', icon: AlertTriangle, badge: 3 },

@@ -62,6 +62,9 @@ async function loadFeature(feature) {
             case 'forecast':
                 await loadForecast();
                 break;
+            case 'monitoring':
+                await loadMonitoring();
+                break;
             default:
                 showError('Unknown feature');
         }
@@ -388,6 +391,200 @@ async function loadForecast() {
     } catch (error) {
         showError(`Failed to load forecast: ${error.message}`);
     }
+}
+
+async function loadMonitoring() {
+    setTitle('🛡️ Operations Monitoring');
+
+    try {
+        // Check if ML backend and monitoring API are available
+        const intentsResponse = await fetch(`${API_BASE}/monitor/intents`).catch(() => null);
+
+        if (intentsResponse && intentsResponse.ok) {
+            const intentsData = await intentsResponse.json();
+            const intents = intentsData.intents || [];
+            const vigilanceLevels = intentsData.vigilance_levels || [];
+
+            showContent(`
+                <div class="alert alert-info">
+                    <strong>🛡️ Intent-Based Monitoring System</strong><br>
+                    AI-powered monitoring for UIDAI auditors. Select what you want to monitor and the system will analyze operations.
+                </div>
+
+                <div class="monitoring-controls" style="margin-top: 20px;">
+                    <div class="stats-grid">
+                        <div class="stat-card" style="text-align: left;">
+                            <label style="display: block; margin-bottom: 8px; color: #00d4ff;">Monitoring Type</label>
+                            <select id="monitoring-intent" class="monitoring-select">
+                                ${intents.map(i => `<option value="${i.id}">${i.display_name}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div class="stat-card" style="text-align: left;">
+                            <label style="display: block; margin-bottom: 8px; color: #00d4ff;">Focus Area</label>
+                            <select id="monitoring-state" class="monitoring-select">
+                                <option value="All India">All India</option>
+                                <option value="Maharashtra">Maharashtra</option>
+                                <option value="Karnataka">Karnataka</option>
+                                <option value="Tamil Nadu">Tamil Nadu</option>
+                                <option value="Gujarat">Gujarat</option>
+                                <option value="Rajasthan">Rajasthan</option>
+                            </select>
+                        </div>
+                        <div class="stat-card" style="text-align: left;">
+                            <label style="display: block; margin-bottom: 8px; color: #00d4ff;">Time Period</label>
+                            <select id="monitoring-period" class="monitoring-select">
+                                <option value="today">Today</option>
+                                <option value="last_7_days">Last 7 Days</option>
+                                <option value="this_month">This Month</option>
+                            </select>
+                        </div>
+                        <div class="stat-card" style="text-align: left;">
+                            <label style="display: block; margin-bottom: 8px; color: #00d4ff;">Vigilance Level</label>
+                            <select id="monitoring-vigilance" class="monitoring-select">
+                                ${vigilanceLevels.map(v => `<option value="${v.id}">${v.name}</option>`).join('')}
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <button onclick="startMonitoring()" class="btn-monitor">
+                        🚀 Start Monitoring
+                    </button>
+                </div>
+
+                <div id="monitoring-results" style="margin-top: 20px;"></div>
+            `);
+        } else {
+            showContent(`
+                <div class="alert alert-warning">
+                    <strong>ML Backend Required:</strong> The monitoring system requires the ML backend to be running.
+                </div>
+                <p style="margin-top: 15px; color: #aaa;">
+                    Start the ML backend with:<br>
+                    <code style="background: #333; padding: 5px 10px; border-radius: 5px; display: inline-block; margin-top: 10px;">
+                    cd ml_backend && python main.py
+                    </code>
+                </p>
+            `);
+        }
+    } catch (error) {
+        showError(`Failed to load monitoring: ${error.message}`);
+    }
+}
+
+async function startMonitoring() {
+    const intent = document.getElementById('monitoring-intent').value;
+    const state = document.getElementById('monitoring-state').value;
+    const period = document.getElementById('monitoring-period').value;
+    const vigilance = document.getElementById('monitoring-vigilance').value;
+
+    const resultsDiv = document.getElementById('monitoring-results');
+    resultsDiv.innerHTML = '<div class="loading"><div class="spinner"></div></div>';
+
+    try {
+        // Submit monitoring request
+        const submitResponse = await fetch(`${API_BASE}/monitor`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                intent,
+                focus_area: state === 'All India' ? undefined : state,
+                time_period: period,
+                vigilance,
+                record_limit: 1000
+            })
+        });
+
+        if (!submitResponse.ok) throw new Error('Failed to submit monitoring request');
+
+        const job = await submitResponse.json();
+        const jobId = job.job_id;
+
+        // Poll for results
+        let attempts = 0;
+        const maxAttempts = 60;
+
+        const pollResults = async () => {
+            attempts++;
+            const statusResponse = await fetch(`${API_BASE}/monitor/status/${jobId}`);
+            const status = await statusResponse.json();
+
+            resultsDiv.innerHTML = `
+                <div class="alert alert-info">
+                    <strong>Status:</strong> ${status.message}
+                    <div style="margin-top: 10px; background: #333; border-radius: 10px; overflow: hidden;">
+                        <div style="width: ${status.progress}%; height: 6px; background: linear-gradient(90deg, #00d4ff, #7b2ff7);"></div>
+                    </div>
+                    <span style="font-size: 0.85rem; color: #888;">${status.progress}% complete</span>
+                </div>
+            `;
+
+            if (status.status === 'completed') {
+                const resultsResponse = await fetch(`${API_BASE}/monitor/results/${jobId}`);
+                const results = await resultsResponse.json();
+                displayMonitoringResults(results);
+            } else if (status.status === 'failed') {
+                resultsDiv.innerHTML = `<div class="alert alert-critical"><strong>Error:</strong> ${status.message}</div>`;
+            } else if (attempts < maxAttempts) {
+                setTimeout(pollResults, 1000);
+            } else {
+                resultsDiv.innerHTML = '<div class="alert alert-warning">Timeout: Analysis is taking too long.</div>';
+            }
+        };
+
+        pollResults();
+    } catch (error) {
+        resultsDiv.innerHTML = `<div class="alert alert-critical"><strong>Error:</strong> ${error.message}</div>`;
+    }
+}
+
+function displayMonitoringResults(results) {
+    const riskColor = results.risk.risk_level === 'Low' ? '#00ff88' :
+        results.risk.risk_level === 'Medium' ? '#ffaa00' : '#ff4444';
+
+    document.getElementById('monitoring-results').innerHTML = `
+        <div class="stats-grid">
+            <div class="stat-card" style="border-left: 4px solid ${riskColor};">
+                <div class="stat-value" style="color: ${riskColor};">${results.risk.risk_index}</div>
+                <div class="stat-label">Risk Index</div>
+                <span style="background: ${riskColor}; color: #000; padding: 2px 8px; border-radius: 10px; font-size: 0.75rem;">
+                    ${results.risk.risk_level}
+                </span>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value">${results.records_analyzed.toLocaleString()}</div>
+                <div class="stat-label">Records Analyzed</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" style="color: #ffaa00;">${results.flagged_for_review}</div>
+                <div class="stat-label">Flagged for Review</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" style="color: #00ff88;">${results.cleared}</div>
+                <div class="stat-label">Cleared</div>
+            </div>
+        </div>
+
+        <h3 style="margin: 20px 0 15px; color: #00d4ff;">📋 Executive Summary</h3>
+        <div class="alert alert-info">${results.summary}</div>
+
+        <h3 style="margin: 20px 0 15px; color: #ffaa00;">⚠️ Findings (${results.findings.length})</h3>
+        ${results.findings.map(f => `
+            <div class="alert ${f.severity === 'Significant' ? 'alert-critical' : f.severity === 'Moderate' ? 'alert-warning' : 'alert-info'}">
+                <strong>${f.title}</strong> <span style="float: right;">${f.severity}</span>
+                <br><span style="color: #aaa;">${f.description}</span>
+                ${f.location ? `<br><span style="font-size: 0.8rem; color: #888;">📍 ${f.location}</span>` : ''}
+            </div>
+        `).join('')}
+
+        <h3 style="margin: 20px 0 15px; color: #00d4ff;">✅ Recommended Actions</h3>
+        ${results.recommended_actions.map(a => `
+            <div class="alert alert-info">✓ ${a.action}</div>
+        `).join('')}
+
+        <p style="text-align: center; color: #666; margin-top: 20px; font-size: 0.85rem;">
+            Report ID: ${results.report_id} | Generated: ${new Date(results.completed_at).toLocaleString()}
+        </p>
+    `;
 }
 
 // =====================================

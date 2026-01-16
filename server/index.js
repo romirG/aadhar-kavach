@@ -38,6 +38,38 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/hotspots', hotspotsRoutes);
 
+// Monitoring API Proxy - Forward to ML backend /api/monitor endpoints
+app.use('/api/monitor', async (req, res) => {
+  try {
+    const targetUrl = `${ML_BACKEND_URL}/api/monitor${req.url}`;
+    console.log(`🛡️  Monitoring API: ${req.method} ${targetUrl}`);
+
+    const response = await axios({
+      method: req.method,
+      url: targetUrl,
+      data: req.body,
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      timeout: 120000
+    });
+
+    res.status(response.status).json(response.data);
+  } catch (error) {
+    if (error.response) {
+      res.status(error.response.status).json(error.response.data);
+    } else if (error.code === 'ECONNREFUSED') {
+      res.status(503).json({
+        error: 'ML Backend Unavailable',
+        message: 'The ML backend server is not running on port 8000.'
+      });
+    } else {
+      console.error('Monitoring Proxy Error:', error.message);
+      res.status(500).json({ error: 'Monitoring proxy error', message: error.message });
+    }
+  }
+});
+
 // ML Backend Proxy - Forward requests to Python FastAPI ML backend
 app.use('/api/ml', async (req, res) => {
   try {
