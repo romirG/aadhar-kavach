@@ -323,6 +323,7 @@ export interface MonitoringResults {
     analysis_scope: string;
     report_id: string;
     completed_at: string;
+    flagged_records?: Array<Record<string, any>>;
 }
 
 export interface StatusResponse {
@@ -330,6 +331,29 @@ export interface StatusResponse {
     status: string;
     progress: number;
     message: string;
+}
+
+export interface ImpactAssessment {
+    severity: string;
+    affected_scope: string;
+    compliance_risk: string;
+}
+
+export interface DetailedActionItem {
+    action: string;
+    priority: string;
+    responsible_party: string;
+    timeline: string;
+}
+
+export interface FindingAnalysisResponse {
+    success: boolean;
+    analysis?: string;
+    root_cause?: string;
+    impact_assessment?: ImpactAssessment;
+    recommended_actions?: DetailedActionItem[];
+    monitoring_plan?: string;
+    error?: string;
 }
 
 export async function getMonitoringIntents(): Promise<{ intents: MonitoringIntent[]; vigilance_levels: VigilanceLevel[] }> {
@@ -357,6 +381,16 @@ export async function getMonitoringStatus(jobId: string): Promise<StatusResponse
 export async function getMonitoringResults(jobId: string): Promise<MonitoringResults> {
     const response = await fetch(`${ML_API_BASE}/api/monitor/results/${jobId}`);
     if (!response.ok) throw new Error('Failed to get monitoring results');
+    return response.json();
+}
+
+export async function analyzeFinding(jobId: string, findingIndex: number): Promise<FindingAnalysisResponse> {
+    const response = await fetch(`${ML_API_BASE}/api/monitor/analyze-finding`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ job_id: jobId, finding_index: findingIndex })
+    });
+    if (!response.ok) throw new Error('Failed to analyze finding');
     return response.json();
 }
 

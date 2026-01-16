@@ -32,6 +32,42 @@ router = APIRouter(prefix="/api/monitor", tags=["Monitoring"])
 
 
 # =============================================================================
+# AI ANALYSIS SCHEMAS
+# =============================================================================
+
+class FindingAnalysisRequest(BaseModel):
+    """Request for in-depth AI analysis of a specific finding."""
+    job_id: str = Field(..., description="Original monitoring job ID")
+    finding_index: int = Field(..., description="Index of the finding to analyze")
+
+
+class ImpactAssessment(BaseModel):
+    """Impact assessment details."""
+    severity: str
+    affected_scope: str
+    compliance_risk: str
+
+
+class DetailedActionItem(BaseModel):
+    """Detailed action item with additional context."""
+    action: str
+    priority: str
+    responsible_party: str
+    timeline: str
+
+
+class FindingAnalysisResponse(BaseModel):
+    """Detailed AI analysis response for a finding."""
+    success: bool
+    analysis: Optional[str] = None
+    root_cause: Optional[str] = None
+    impact_assessment: Optional[ImpactAssessment] = None
+    recommended_actions: Optional[List[DetailedActionItem]] = None
+    monitoring_plan: Optional[str] = None
+    error: Optional[str] = None
+
+
+# =============================================================================
 # REQUEST/RESPONSE SCHEMAS - NO ML TERMS, NO DATASETS
 # =============================================================================
 
@@ -518,30 +554,31 @@ async def process_monitoring_job(job_id: str):
         groq_result = None
         logger.info(f"Job {job_id}: Flagged records count: {len(flagged_records)}")
         
-        # Call Groq if we have records OR computed risk context (prevent fallback)
-        # Defaults to 20 if logic allows, so we loosen check
-        if (flagged_records or total_flagged > 0):
-            logger.info(f"Job {job_id}: Calling Groq API")
-            try:
-                groq_result = groq_service.analyze_monitoring_data(
+        # Call Groq on EVERY search as requested
+        logger.info(f"Job {job_id}: Calling Groq API for context: intent={request_data['intent']}, focus={request_data.get('focus_area', 'All India')}")
+        try:
+            groq_result = groq_service.analyze_monitoring_data(
                     context={
                         "intent": request_data["intent"],
                         "focus": request_data.get("focus_area", "All India"),
                         "risk_level": risk_result.get("risk_metrics", {}).get("risk_level"),
                         "strategies": [s["strategy_name"] for s in strategy_results],
                         "total_analyzed": total_records,
-                        "total_flagged": total_flagged
+                        "total_flagged": total_flagged,
+                        "vigilance": request_data.get("vigilance", "standard"),
+                        "time_period": request_data.get("time_period", "today")
                     },
                     flagged_records=flagged_records
                 )
-                if groq_result:
-                    logger.info(f"Job {job_id}: Groq analysis successful")
-                else:
-                    logger.warning(f"Job {job_id}: Groq returned None")
-            except Exception as e:
-                logger.error(f"Job {job_id}: Groq calling error: {e}")
-        else:
-             logger.info(f"Job {job_id}: Skipping Groq (No flags or limit 0)")
+            if groq_result:
+                logger.info(f"Job {job_id}: Groq analysis successful - Generated {len(groq_result.get('findings', []))} findings and {len(groq_result.get('recommended_actions', []))} actions")
+                logger.debug(f"Job {job_id}: Groq response summary: {groq_result.get('summary', 'N/A')[:100]}...")
+            else:
+                logger.warning(f"Job {job_id}: Groq returned None - API key may not be configured or API call failed")
+        except Exception as e:
+            logger.error(f"Job {job_id}: Groq calling error: {e}")
+            import traceback
+            logger.error(f"Job {job_id}: Traceback: {traceback.format_exc()}")
         
         await asyncio.sleep(0.2)
         
@@ -573,7 +610,7 @@ async def process_monitoring_job(job_id: str):
                     priority=a.get("priority", "Normal")
                 ))
         else:
-            # Fallback
+            # Fallback - Generate dynamic context-aware actions
             final_findings = [
                 Finding(
                     title=obs.get("title", "Finding"),
@@ -584,12 +621,52 @@ async def process_monitoring_job(job_id: str):
                 )
                 for obs in explanation.get("observations", [])
             ]
-            # Replace generic fallback actions with policy-specific technical ones
-            final_actions = [
-                ActionItem(action="Initiate Protocol A-12: Targeted audit of top 5% deviating enrollment agencies", priority="High"),
-                ActionItem(action="Enforce Policy 3.4: Suspend operators exceeding 15% biometric exception threshold", priority="High"),
-                ActionItem(action="Issue Show Cause Notice to localized clusters per Regulation 7(a)", priority="Normal")
-            ]
+            
+            # Generate dynamic actions based on context
+            intent = request_data.get("intent", "")
+            focus = request_data.get("focus_area", "All India")
+            risk_level = risk_metrics.get("risk_level", "Low")
+            
+            # Intent-specific actions
+            action_templates = {
+                "check_enrollments": [
+                    f"Initiate field verification of enrollment centers in {focus}",
+                    f"Review operator credentials and authentication logs for {focus}",
+                    "Deploy mobile verification units to high-deviation districts"
+                ],
+                "review_updates": [
+                    f"Audit demographic update requests from {focus} for past 30 days",
+                    "Cross-verify update requests with supporting documentation",
+                    "Implement enhanced authentication for update operations"
+                ],
+                "verify_biometrics": [
+                    f"Schedule biometric re-capture for flagged records in {focus}",
+                    "Inspect biometric capture device calibration and maintenance logs",
+                    "Conduct quality audit of biometric operators"
+                ],
+                "comprehensive_check": [
+                    f"Launch comprehensive integrity audit in {focus}",
+                    "Activate enhanced monitoring protocols across all operations",
+                    "Coordinate with state authorities for ground verification"
+                ]
+            }
+            
+            # Risk-based priority assignment
+            priority_map = {"Critical": "Urgent", "High": "High", "Medium": "Normal", "Low": "Normal"}
+            priority = priority_map.get(risk_level, "Normal")
+            
+            # Get actions for this intent
+            actions_list = action_templates.get(intent, [
+                f"Review operational data for {focus}",
+                "Conduct targeted inspection of flagged activities",
+                "Implement corrective measures as per standard protocols"
+            ])
+            
+            # Add time-sensitive action for high risk
+            if risk_level in ["High", "Critical"]:
+                actions_list.insert(0, f"IMMEDIATE: Suspend operations at facilities with {risk_level.lower()} risk indicators pending investigation")
+            
+            final_actions = [ActionItem(action=action, priority=priority) for action in actions_list[:4]]
 
         results = MonitoringResults(
             job_id=job_id,
@@ -641,3 +718,117 @@ async def health_check():
         "service": "Monitoring API",
         "active_jobs": len([j for j in _jobs.values() if j["status"] == JobStatus.PROCESSING])
     }
+
+
+# =============================================================================
+# AI ANALYSIS ENDPOINTS
+# =============================================================================
+
+@router.post("/analyze-finding", response_model=FindingAnalysisResponse)
+async def analyze_finding(request: FindingAnalysisRequest):
+    """
+    Get in-depth AI analysis for a specific finding using Groq.
+    
+    This endpoint:
+    1. Retrieves the finding from the completed job
+    2. Calls Groq API for detailed analysis
+    3. Returns comprehensive recommendations and root cause analysis
+    """
+    try:
+        # Validate job exists and is completed
+        if request.job_id not in _jobs:
+            raise HTTPException(status_code=404, detail="Job not found")
+        
+        job = _jobs[request.job_id]
+        
+        if job["status"] != JobStatus.COMPLETED:
+            raise HTTPException(
+                status_code=400,
+                detail="Job must be completed before analyzing findings"
+            )
+        
+        results = job["results"]
+        
+        # Validate finding index
+        if request.finding_index < 0 or request.finding_index >= len(results.findings):
+            raise HTTPException(
+                status_code=400,
+                detail=f"Invalid finding index. Must be between 0 and {len(results.findings) - 1}"
+            )
+        
+        # Get the specific finding
+        finding = results.findings[request.finding_index]
+        finding_dict = {
+            "title": finding.title,
+            "description": finding.description,
+            "severity": finding.severity,
+            "location": finding.location,
+            "details": finding.details
+        }
+        
+        # Get flagged records (sample)
+        flagged_records = results.flagged_records or []
+        
+        # Prepare context
+        context = {
+            "intent": job["request"]["intent"],
+            "focus_area": job["request"].get("focus_area", "All India"),
+            "time_period": job["request"].get("time_period", "today"),
+            "vigilance": job["request"].get("vigilance", "standard"),
+            "risk_level": results.risk.risk_level,
+            "total_analyzed": results.records_analyzed,
+            "total_flagged": results.flagged_for_review
+        }
+        
+        # Call Groq service for analysis
+        from services.groq_service import groq_service
+        
+        logger.info(f"Analyzing finding {request.finding_index} for job {request.job_id}")
+        
+        groq_result = groq_service.analyze_finding(
+            finding=finding_dict,
+            flagged_records=flagged_records,
+            context=context
+        )
+        
+        if not groq_result:
+            return FindingAnalysisResponse(
+                success=False,
+                error="AI analysis service unavailable. Please ensure Groq API key is configured."
+            )
+        
+        # Parse and structure the response
+        impact = groq_result.get("impact_assessment", {})
+        actions = groq_result.get("recommended_actions", [])
+        
+        return FindingAnalysisResponse(
+            success=True,
+            analysis=groq_result.get("analysis"),
+            root_cause=groq_result.get("root_cause"),
+            impact_assessment=ImpactAssessment(
+                severity=impact.get("severity", "Unknown"),
+                affected_scope=impact.get("affected_scope", "Unknown"),
+                compliance_risk=impact.get("compliance_risk", "Unknown")
+            ) if impact else None,
+            recommended_actions=[
+                DetailedActionItem(
+                    action=action.get("action", ""),
+                    priority=action.get("priority", "Medium"),
+                    responsible_party=action.get("responsible_party", "Unknown"),
+                    timeline=action.get("timeline", "As needed")
+                )
+                for action in actions
+            ] if actions else None,
+            monitoring_plan=groq_result.get("monitoring_plan")
+        )
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error analyzing finding: {e}")
+        import traceback
+        traceback.print_exc()
+        return FindingAnalysisResponse(
+            success=False,
+            error=f"Analysis failed: {str(e)}"
+        )
