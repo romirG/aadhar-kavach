@@ -16,6 +16,10 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 import os
+import sys
+
+# Ensure current directory is in python path
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from config import get_settings, OUTPUT_DIR, VISUALIZATION_DIR, MODEL_DIR, REPORT_DIR
 
@@ -101,7 +105,11 @@ try:
     app.include_router(analysis.router, prefix="/api/ml", tags=["Internal - Analysis"])
     app.include_router(visualizations.router, prefix="/api/ml", tags=["Internal - Visualizations"])
     app.include_router(reports.router, prefix="/api/ml", tags=["Internal - Reports"])
-except ImportError:
+except ImportError as e:
+    import traceback
+    with open("main_import_error.txt", "w") as f:
+        traceback.print_exc(file=f)
+    logger.error(f"Failed to load new routers: {e}")
     # Fallback to old router structure
     from routers import datasets, analysis, visualizations
     app.include_router(datasets.router, prefix="/api", tags=["Datasets"])
