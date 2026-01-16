@@ -611,22 +611,33 @@ function displayMonitoringResults(results) {
         <div class="alert alert-info">${results.summary}</div>
 
         <h3 style="margin: 20px 0 15px; color: #ffaa00;">⚠️ Key Observations (${results.findings.length})</h3>
-        ${results.findings.slice(0, 5).map((f, i) => `
-            <div class="alert" style="border-left: 4px solid ${f.severity === 'High' ? '#ff4444' : f.severity === 'Medium' ? '#ffaa00' : '#00d4ff'}; background: ${f.severity === 'High' ? 'rgba(255,68,68,0.15)' : f.severity === 'Medium' ? 'rgba(255,170,0,0.15)' : 'rgba(0,212,255,0.15)'};">
-                <strong>${f.title}</strong> <span style="float: right; color: ${f.severity === 'High' ? '#ff4444' : f.severity === 'Medium' ? '#ffaa00' : '#00d4ff'}; font-weight: bold;">${f.severity}</span>
-                <br><span style="color: #ccc;">${f.description}</span>
+        ${results.findings.slice(0, 5).map((f, i) => {
+        const severityColor = f.severity === 'High' ? '#ff4444' : f.severity === 'Medium' ? '#ffaa00' : '#00d4ff';
+        const bgColor = f.severity === 'High' ? 'rgba(255,68,68,0.15)' : f.severity === 'Medium' ? 'rgba(255,170,0,0.15)' : 'rgba(0,212,255,0.15)';
+        const location = f.location || f.state || 'National';
+        return `
+            <div class="alert" style="border-left: 4px solid ${severityColor}; background: ${bgColor};">
+                <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                    <strong style="flex: 1;">${f.title}</strong>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <span style="background: rgba(100,100,255,0.3); color: #8888ff; padding: 2px 8px; border-radius: 10px; font-size: 0.7rem;">📍 ${location}</span>
+                        <span style="background: ${severityColor}; color: #000; padding: 2px 10px; border-radius: 10px; font-size: 0.75rem; font-weight: bold;">${f.severity}</span>
+                    </div>
+                </div>
+                <span style="color: #ccc;">${f.description}</span>
                 
                 <div style="margin-top: 10px;">
                     <button onclick="toggleFindingDetails(${i})" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">
                         ▼ Details
                     </button>
-                    <div id="finding-details-${i}" style="display: none; margin-top: 10px; background: rgba(0,0,0,0.4); padding: 15px; border-radius: 6px; border-left: 3px solid ${f.severity === 'High' ? '#ff4444' : f.severity === 'Medium' ? '#ffaa00' : '#00d4ff'};">
-                        <h4 style="color: #ffaa00; margin: 0 0 8px 0; font-size: 0.95rem;">📊 Impact Assessment</h4>
+                    <div id="finding-details-${i}" style="display: none; margin-top: 10px; background: rgba(0,0,0,0.4); padding: 15px; border-radius: 6px; border-left: 3px solid ${severityColor};">
+                        <h4 style="color: #ffaa00; margin: 0 0 8px 0; font-size: 0.95rem;">📊 Impact Assessment - ${location}</h4>
                         <p style="margin: 0; color: #ccc; font-size: 0.9rem;">${f.details || 'Pattern detected requiring investigation within the focus area.'}</p>
                     </div>
                 </div>
             </div>
-        `).join('')}
+        `;
+    }).join('')}
         
         ${results.findings.length > 5 ? `
             <button id="show-more-findings-btn" onclick="toggleMoreFindings()" style="background: rgba(255,170,0,0.2); border: 1px solid #ffaa00; color: #ffaa00; padding: 10px 20px; border-radius: 6px; cursor: pointer; width: 100%; margin: 10px 0;">
@@ -642,25 +653,128 @@ function displayMonitoringResults(results) {
             </div>
         ` : ''}
 
-        <h3 style="margin: 20px 0 15px; color: #00ff88;">✅ Recommended Actions (${results.recommended_actions.length})</h3>
-        ${results.recommended_actions.map((a, i) => `
-            <div style="background: ${a.priority === 'Urgent' ? 'rgba(255,68,68,0.2)' : a.priority === 'High' ? 'rgba(255,170,0,0.2)' : 'rgba(0,255,136,0.15)'}; border-left: 4px solid ${a.priority === 'Urgent' ? '#ff4444' : a.priority === 'High' ? '#ffaa00' : '#00ff88'}; padding: 15px; margin-bottom: 12px; border-radius: 6px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                    <h4 style="margin: 0; color: ${a.priority === 'Urgent' ? '#ff4444' : a.priority === 'High' ? '#ffaa00' : '#00ff88'}; font-size: 1rem;">
-                        ${a.action_title || 'Action ' + (i + 1)}
-                    </h4>
-                    <span style="background: ${a.priority === 'Urgent' ? '#ff4444' : a.priority === 'High' ? '#ffaa00' : '#00ff88'}; color: #000; padding: 3px 10px; border-radius: 12px; font-size: 0.75rem; font-weight: bold;">
-                        ${a.priority}
-                    </span>
+        <div style="background: linear-gradient(135deg, rgba(139,92,246,0.2) 0%, rgba(59,130,246,0.2) 100%); border: 1px solid rgba(139,92,246,0.4); border-radius: 12px; padding: 20px; margin-top: 20px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                <div>
+                    <h3 style="margin: 0; color: #a78bfa;">🤖 AI-Powered Analysis</h3>
+                    <p style="margin: 5px 0 0; color: #888; font-size: 0.8rem;">Model: <strong style="color: #8b5cf6;">llama-3.3-70b-versatile</strong> via Groq LPU</p>
                 </div>
-                <p style="margin: 0; color: #ccc; font-size: 0.9rem;">${a.action}</p>
+                <button id="regenerate-ai-btn" onclick="regenerateAIAnalysis()" style="background: linear-gradient(135deg, #8b5cf6, #6366f1); border: none; color: #fff; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 8px; transition: all 0.3s;">
+                    <span>✨</span> Generate AI Recommendations
+                </button>
             </div>
-        `).join('')}
+            <div id="ai-recommendations-container">
+                <p style="color: #888; text-align: center; padding: 20px;">Click the button above to generate unique AI-powered recommendations based on current findings.</p>
+            </div>
+        </div>
 
         <p style="text-align: center; color: #666; margin-top: 20px; font-size: 0.85rem;">
             Report ID: ${results.report_id} | Generated: ${new Date(results.completed_at).toLocaleString()}
         </p>
     `;
+}
+
+// =====================================
+// AI Analysis Regeneration
+// =====================================
+
+async function regenerateAIAnalysis() {
+    const btn = document.getElementById('regenerate-ai-btn');
+    const container = document.getElementById('ai-recommendations-container');
+
+    // Get current results
+    const results = window.lastMonitoringResults;
+    if (!results) {
+        container.innerHTML = '<p style="color: #ff4444; text-align: center;">No analysis results available. Run monitoring first.</p>';
+        return;
+    }
+
+    // Show loading state
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner" style="width: 16px; height: 16px; border-width: 2px;"></span> Generating...';
+    container.innerHTML = `
+        <div style="text-align: center; padding: 30px;">
+            <div class="spinner" style="margin: 0 auto 15px;"></div>
+            <p style="color: #a78bfa;">Generating recommendations...</p>
+        </div>
+    `;
+
+    try {
+        const response = await fetch(`${ML_API_BASE}/api/monitor/regenerate-ai`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                focus_area: results.focus_area || 'All India',
+                intent: results.intent || 'Operations Monitoring',
+                findings: results.findings || [],
+                risk_level: results.risk?.risk_level || 'Medium',
+                total_analyzed: results.records_analyzed || 0,
+                total_flagged: results.flagged_for_review || 0
+            })
+        });
+
+        const data = await response.json();
+
+        if (data.success) {
+            // Display the new recommendations
+            container.innerHTML = `
+                <div style="margin-bottom: 15px; padding: 10px; background: rgba(139,92,246,0.1); border-radius: 8px;">
+                    <p style="margin: 0; color: #a78bfa; font-size: 0.8rem;">
+                        ✅ Generated at ${new Date(data.generated_at).toLocaleTimeString()} | Model: <strong>${data.model}</strong>
+                    </p>
+                </div>
+                
+                ${data.summary ? `
+                    <div style="background: rgba(0,212,255,0.1); border-left: 3px solid #00d4ff; padding: 15px; border-radius: 6px; margin-bottom: 15px;">
+                        <h4 style="color: #00d4ff; margin: 0 0 8px;">📋 AI Summary</h4>
+                        <p style="color: #ccc; margin: 0; font-size: 0.9rem;">${data.summary}</p>
+                    </div>
+                ` : ''}
+                
+                <h4 style="color: #00ff88; margin: 15px 0 10px;">✅ Recommended Actions (${data.recommended_actions?.length || 0})</h4>
+                ${(data.recommended_actions || []).map((a, i) => {
+                const categoryColors = {
+                    'Audit': { bg: 'rgba(255,99,71,0.2)', border: '#ff6347', accent: '#ff6347' },
+                    'Investigation': { bg: 'rgba(255,165,0,0.2)', border: '#ffa500', accent: '#ffa500' },
+                    'Training': { bg: 'rgba(50,205,50,0.2)', border: '#32cd32', accent: '#32cd32' },
+                    'Infrastructure': { bg: 'rgba(30,144,255,0.2)', border: '#1e90ff', accent: '#1e90ff' },
+                    'Policy': { bg: 'rgba(186,85,211,0.2)', border: '#ba55d3', accent: '#ba55d3' }
+                };
+                const category = a.action_category || 'Policy';
+                const colors = categoryColors[category] || categoryColors['Policy'];
+                const priorityBg = a.priority === 'Urgent' ? '#ff4444' : a.priority === 'High' ? '#ffaa00' : '#00ff88';
+                return `
+                    <div style="background: ${colors.bg}; border-left: 4px solid ${colors.border}; padding: 15px; margin-bottom: 12px; border-radius: 8px;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
+                            <div>
+                                <h5 style="margin: 0 0 5px; color: ${colors.accent}; font-size: 1rem;">
+                                    ${a.action_title || 'Action ' + (i + 1)}
+                                </h5>
+                                <div style="display: flex; gap: 8px; font-size: 0.7rem;">
+                                    <span style="background: ${colors.accent}; color: #000; padding: 2px 8px; border-radius: 8px; font-weight: 600;">
+                                        ${category}
+                                    </span>
+                                    ${a.target_region ? `<span style="background: rgba(100,100,255,0.3); color: #8888ff; padding: 2px 8px; border-radius: 8px;">📍 ${a.target_region}</span>` : ''}
+                                </div>
+                            </div>
+                            <span style="background: ${priorityBg}; color: #000; padding: 3px 10px; border-radius: 10px; font-size: 0.7rem; font-weight: bold;">
+                                ${a.priority}
+                            </span>
+                        </div>
+                        <p style="margin: 0; color: #ddd; font-size: 0.85rem; line-height: 1.5;">${a.action}</p>
+                    </div>
+                `;
+            }).join('')}
+            `;
+        } else {
+            container.innerHTML = `<p style="color: #ff4444; text-align: center; padding: 20px;">❌ ${data.error || 'Failed to generate AI analysis'}</p>`;
+        }
+    } catch (error) {
+        container.innerHTML = `<p style="color: #ff4444; text-align: center; padding: 20px;">❌ Error: ${error.message}</p>`;
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<span>✨</span> Generate AI Recommendations';
+    }
 }
 
 // =====================================
