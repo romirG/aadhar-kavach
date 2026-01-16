@@ -11,6 +11,7 @@ import demographicRoutes from './routes/demographic.js';
 import biometricRoutes from './routes/biometric.js';
 import dashboardRoutes from './routes/dashboard.js';
 import aiRoutes from './routes/ai.js';
+import hotspotsRoutes from './routes/hotspots.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -26,13 +27,14 @@ app.use('/api/demographic', demographicRoutes);
 app.use('/api/biometric', biometricRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/ai', aiRoutes);
+app.use('/api/hotspots', hotspotsRoutes);
 
 // ML Backend Proxy - Forward requests to Python FastAPI ML backend
 app.use('/api/ml', async (req, res) => {
   try {
     const targetUrl = `${ML_BACKEND_URL}${req.originalUrl}`;
     console.log(`🔀 Proxying to ML Backend: ${req.method} ${targetUrl}`);
-    
+
     const response = await axios({
       method: req.method,
       url: targetUrl,
@@ -43,7 +45,7 @@ app.use('/api/ml', async (req, res) => {
       },
       timeout: 120000 // 2 minute timeout for long-running ML tasks
     });
-    
+
     res.status(response.status).json(response.data);
   } catch (error) {
     if (error.response) {
@@ -79,4 +81,6 @@ app.listen(PORT, () => {
   console.log(`📊 Dashboard API: http://localhost:${PORT}/api/dashboard`);
   console.log(`🤖 AI API: http://localhost:${PORT}/api/ai`);
   console.log(`🧠 ML API (proxied): http://localhost:${PORT}/api/ml → ${ML_BACKEND_URL}`);
+  console.log(`🗺️  Hotspots API: http://localhost:${PORT}/api/hotspots`);
+  console.log(`📈 Spatial Analysis: http://localhost:${PORT}/api/hotspots/spatial`);
 });
