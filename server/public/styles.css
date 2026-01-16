@@ -350,3 +350,70 @@ body {
         grid-template-columns: 1fr;
     }
 }
+
+/* Monitoring Feature Styles */
+.monitoring-card {
+    position: relative;
+    background: linear-gradient(135deg, rgba(0, 212, 255, 0.1), rgba(123, 47, 247, 0.1)) !important;
+    border-color: rgba(0, 212, 255, 0.3) !important;
+}
+
+.monitoring-card:hover {
+    border-color: #00d4ff !important;
+    box-shadow: 0 10px 40px rgba(0, 212, 255, 0.3) !important;
+}
+
+.new-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: linear-gradient(90deg, #00d4ff, #7b2ff7);
+    color: #fff;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.7rem;
+    font-weight: bold;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+.monitoring-select {
+    width: 100%;
+    padding: 10px 12px;
+    background: rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 8px;
+    color: #e0e0e0;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.monitoring-select:focus {
+    outline: none;
+    border-color: #00d4ff;
+}
+
+.btn-monitor {
+    display: block;
+    width: 100%;
+    max-width: 300px;
+    margin: 20px auto 0;
+    padding: 15px 30px;
+    background: linear-gradient(90deg, #00d4ff, #7b2ff7);
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.btn-monitor:hover {
+    transform: scale(1.05);
+    box-shadow: 0 5px 20px rgba(0, 212, 255, 0.4);
+}
