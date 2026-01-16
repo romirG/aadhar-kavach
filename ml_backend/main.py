@@ -118,16 +118,29 @@ except ImportError as e:
 
 # Biometric Re-enrollment Risk Predictor Router (from separate feature module)
 try:
-    import sys
-    import os
-    # Add biometric-risk-predictor to path
-    biometric_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'biometric-risk-predictor', 'backend')
-    sys.path.insert(0, biometric_path)
+    import importlib.util
     
-    from api.risk_predictor import router as risk_router
+    # Define absolute paths for the biometric risk predictor module
+    biometric_backend_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'biometric-risk-predictor', 'backend')
+    
+    # Add biometric backend services to path for internal imports
+    if biometric_backend_path not in sys.path:
+        sys.path.insert(0, biometric_backend_path)
+    
+    # Load risk_predictor module using importlib to avoid api/ package name collision
+    risk_predictor_path = os.path.join(biometric_backend_path, 'api', 'risk_predictor.py')
+    spec = importlib.util.spec_from_file_location("biometric_risk_predictor", risk_predictor_path)
+    risk_predictor_module = importlib.util.module_from_spec(spec)
+    sys.modules["biometric_risk_predictor"] = risk_predictor_module
+    spec.loader.exec_module(risk_predictor_module)
+    
+    risk_router = risk_predictor_module.router
     app.include_router(risk_router, tags=["Biometric Risk Predictor"])
     logger.info("✅ Biometric Risk Predictor router loaded from feature module")
-except ImportError as e:
+except Exception as e:
+    import traceback
+    with open("biometric_import_error.txt", "w") as f:
+        traceback.print_exc(file=f)
     logger.warning(f"⚠️ Could not load risk predictor router: {e}")
 
 

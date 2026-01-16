@@ -651,14 +651,21 @@ class BiometricRiskService:
             one_year_survival = np.exp(-adjusted_lambda * 365)
             three_year_survival = np.exp(-adjusted_lambda * 1095)
             
+            # Calculate 5-year survival rate
+            five_year_survival = np.exp(-adjusted_lambda * 1825)
+            
             return {
                 "curves": curves,
                 "statistics": {
                     "median_survival_days": median_survival,
                     "one_year_survival_rate": float(one_year_survival),
                     "three_year_survival_rate": float(three_year_survival),
+                    "five_year_survival_rate": float(five_year_survival),
                     "recommended_update_interval_days": min(median_survival, 730)  # Cap at 2 years
                 },
+                # Top-level fields for frontend compatibility
+                "median_survival_years": round(median_survival / 365, 1),
+                "five_year_survival_rate": float(five_year_survival),
                 "methodology": "Exponential decay model adjusted for regional risk factors"
             }
             

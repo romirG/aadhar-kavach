@@ -237,6 +237,7 @@
                 opacity: 0;
                 transform: translateY(20px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -253,12 +254,29 @@
             animation: fadeInUp 0.6s ease-out forwards;
         }
 
-        .results-section.active .kpi-grid { animation-delay: 0.1s; }
-        .results-section.active .quick-stats-row { animation-delay: 0.2s; }
-        .results-section.active .metrics-row { animation-delay: 0.3s; }
-        .results-section.active .chart-card:nth-child(1) { animation-delay: 0.4s; }
-        .results-section.active .chart-card:nth-child(2) { animation-delay: 0.5s; }
-        .results-section.active .chart-card:nth-child(3) { animation-delay: 0.6s; }
+        .results-section.active .kpi-grid {
+            animation-delay: 0.1s;
+        }
+
+        .results-section.active .quick-stats-row {
+            animation-delay: 0.2s;
+        }
+
+        .results-section.active .metrics-row {
+            animation-delay: 0.3s;
+        }
+
+        .results-section.active .chart-card:nth-child(1) {
+            animation-delay: 0.4s;
+        }
+
+        .results-section.active .chart-card:nth-child(2) {
+            animation-delay: 0.5s;
+        }
+
+        .results-section.active .chart-card:nth-child(3) {
+            animation-delay: 0.6s;
+        }
 
         .results-section {
             display: none;
@@ -419,7 +437,9 @@
         }
 
         @media (max-width: 900px) {
-            .chart-card-half, .chart-card-third {
+
+            .chart-card-half,
+            .chart-card-third {
                 min-width: 100%;
             }
         }
@@ -1384,43 +1404,70 @@
                     <div class="chart-card-full">
                         <div class="chart-header">
                             <div class="chart-title">
-                                <div class="chart-icon" style="background: linear-gradient(135deg, #4f46e5, #7c3aed);">📊</div>
+                                <div class="chart-icon" style="background: linear-gradient(135deg, #4f46e5, #7c3aed);">
+                                    📊</div>
                                 <div>
                                     <h3>Biometric Re-enrollment Risk by State</h3>
                                     <p class="chart-subtitle">Top 15 states by average re-enrollment risk score</p>
                                 </div>
                             </div>
                             <div style="display: flex; gap: 12px; align-items: center;">
-                                <span style="display: flex; align-items: center; gap: 4px; font-size: 0.75rem; color: #6b7280;">
-                                    <span style="width: 12px; height: 12px; background: #dc2626; border-radius: 2px;"></span> Critical ≥65%
+                                <span
+                                    style="display: flex; align-items: center; gap: 4px; font-size: 0.75rem; color: #6b7280;">
+                                    <span
+                                        style="width: 12px; height: 12px; background: #dc2626; border-radius: 2px;"></span>
+                                    Critical ≥65%
                                 </span>
-                                <span style="display: flex; align-items: center; gap: 4px; font-size: 0.75rem; color: #6b7280;">
-                                    <span style="width: 12px; height: 12px; background: #f59e0b; border-radius: 2px;"></span> High 45-65%
+                                <span
+                                    style="display: flex; align-items: center; gap: 4px; font-size: 0.75rem; color: #6b7280;">
+                                    <span
+                                        style="width: 12px; height: 12px; background: #f59e0b; border-radius: 2px;"></span>
+                                    High 45-65%
                                 </span>
-                                <span style="display: flex; align-items: center; gap: 4px; font-size: 0.75rem; color: #6b7280;">
-                                    <span style="width: 12px; height: 12px; background: #10b981; border-radius: 2px;"></span> Low &lt;45%
+                                <span
+                                    style="display: flex; align-items: center; gap: 4px; font-size: 0.75rem; color: #6b7280;">
+                                    <span
+                                        style="width: 12px; height: 12px; background: #10b981; border-radius: 2px;"></span>
+                                    Low &lt;45%
                                 </span>
                             </div>
                         </div>
                         <div class="chart-canvas-container-wide" style="height: 450px;">
                             <canvas id="stateRiskChart"></canvas>
                         </div>
-                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
-                            <div style="background: linear-gradient(135deg, #fef2f2, #fee2e2); padding: 16px; border-radius: 12px; text-align: center;">
-                                <div style="font-size: 1.5rem; font-weight: 700; color: #dc2626;" id="criticalStatesCount">5</div>
-                                <div style="font-size: 0.75rem; color: #991b1b; text-transform: uppercase; letter-spacing: 0.5px;">Critical States</div>
+                        <div
+                            style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 20px; padding-top: 20px; border-top: 1px solid #e5e7eb;">
+                            <div
+                                style="background: linear-gradient(135deg, #fef2f2, #fee2e2); padding: 16px; border-radius: 12px; text-align: center;">
+                                <div style="font-size: 1.5rem; font-weight: 700; color: #dc2626;"
+                                    id="criticalStatesCount">5</div>
+                                <div
+                                    style="font-size: 0.75rem; color: #991b1b; text-transform: uppercase; letter-spacing: 0.5px;">
+                                    Critical States</div>
                             </div>
-                            <div style="background: linear-gradient(135deg, #fffbeb, #fef3c7); padding: 16px; border-radius: 12px; text-align: center;">
-                                <div style="font-size: 1.5rem; font-weight: 700; color: #d97706;" id="highRiskStatesCount">4</div>
-                                <div style="font-size: 0.75rem; color: #92400e; text-transform: uppercase; letter-spacing: 0.5px;">High Risk States</div>
+                            <div
+                                style="background: linear-gradient(135deg, #fffbeb, #fef3c7); padding: 16px; border-radius: 12px; text-align: center;">
+                                <div style="font-size: 1.5rem; font-weight: 700; color: #d97706;"
+                                    id="highRiskStatesCount">4</div>
+                                <div
+                                    style="font-size: 0.75rem; color: #92400e; text-transform: uppercase; letter-spacing: 0.5px;">
+                                    High Risk States</div>
                             </div>
-                            <div style="background: linear-gradient(135deg, #f0fdf4, #dcfce7); padding: 16px; border-radius: 12px; text-align: center;">
-                                <div style="font-size: 1.5rem; font-weight: 700; color: #16a34a;" id="lowRiskStatesCount">6</div>
-                                <div style="font-size: 0.75rem; color: #166534; text-transform: uppercase; letter-spacing: 0.5px;">Low Risk States</div>
+                            <div
+                                style="background: linear-gradient(135deg, #f0fdf4, #dcfce7); padding: 16px; border-radius: 12px; text-align: center;">
+                                <div style="font-size: 1.5rem; font-weight: 700; color: #16a34a;"
+                                    id="lowRiskStatesCount">6</div>
+                                <div
+                                    style="font-size: 0.75rem; color: #166534; text-transform: uppercase; letter-spacing: 0.5px;">
+                                    Low Risk States</div>
                             </div>
-                            <div style="background: linear-gradient(135deg, #f5f3ff, #ede9fe); padding: 16px; border-radius: 12px; text-align: center;">
-                                <div style="font-size: 1.5rem; font-weight: 700; color: #7c3aed;" id="avgNationalRisk">47%</div>
-                                <div style="font-size: 0.75rem; color: #5b21b6; text-transform: uppercase; letter-spacing: 0.5px;">National Average</div>
+                            <div
+                                style="background: linear-gradient(135deg, #f5f3ff, #ede9fe); padding: 16px; border-radius: 12px; text-align: center;">
+                                <div style="font-size: 1.5rem; font-weight: 700; color: #7c3aed;" id="avgNationalRisk">
+                                    47%</div>
+                                <div
+                                    style="font-size: 0.75rem; color: #5b21b6; text-transform: uppercase; letter-spacing: 0.5px;">
+                                    National Average</div>
                             </div>
                         </div>
                     </div>
@@ -1457,251 +1504,252 @@
                         </div>
                     </div>
                 </div>
-                        <div class="chart-canvas-container">
-                            <canvas id="ageRiskChart"></canvas>
-                        </div>
-                    </div>
-                    <div class="chart-card-half">
-                        <div class="chart-header">
-                            <div class="chart-title">
-                                <div class="chart-icon">📈</div>
-                                <div>
-                                    <h3>Monthly Failure Rate Trend</h3>
-                                    <p class="chart-subtitle">Authentication failures vs updates over time</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="chart-canvas-container">
-                            <canvas id="trendChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Row 3: Survival Curve Full Width -->
-                <div class="charts-row">
-                    <div class="chart-card-full">
-                        <div class="chart-header">
-                            <div class="chart-title">
-                                <div class="chart-icon">📉</div>
-                                <div>
-                                    <h3>Template Survival Curve (Time-to-Failure)</h3>
-                                    <p class="chart-subtitle">Kaplan-Meier style probability of biometric template validity over time</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="chart-canvas-container-wide">
-                            <canvas id="survivalChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Row 4: Two charts side by side -->
-                <div class="charts-row">
-                    <div class="chart-card-half">
-                        <div class="chart-header">
-                            <div class="chart-title">
-                                <div class="chart-icon">🔍</div>
-                                <div>
-                                    <h3>SHAP Feature Importance</h3>
-                                    <p class="chart-subtitle">Factors driving risk predictions</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="chart-canvas-container">
-                            <canvas id="shapChart"></canvas>
-                        </div>
-                    </div>
-                    <div class="chart-card-half">
-                        <div class="chart-header">
-                            <div class="chart-title">
-                                <div class="chart-icon">🏢</div>
-                                <div>
-                                    <h3>Centre Performance</h3>
-                                    <p class="chart-subtitle">Capture centre quality grades</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="chart-canvas-container">
-                            <canvas id="centreChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Row 5: ROC/PR Curves and Calibration -->
-                <div class="charts-row">
-                    <div class="chart-card-third">
-                        <div class="chart-header">
-                            <div class="chart-title">
-                                <div class="chart-icon">📐</div>
-                                <div>
-                                    <h3>ROC Curve</h3>
-                                    <p class="chart-subtitle">Model discrimination</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="chart-canvas-container-small">
-                            <canvas id="rocChart"></canvas>
-                        </div>
-                    </div>
-                    <div class="chart-card-third">
-                        <div class="chart-header">
-                            <div class="chart-title">
-                                <div class="chart-icon">🎯</div>
-                                <div>
-                                    <h3>Precision-Recall</h3>
-                                    <p class="chart-subtitle">PR curve analysis</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="chart-canvas-container-small">
-                            <canvas id="prChart"></canvas>
-                        </div>
-                    </div>
-                    <div class="chart-card-third">
-                        <div class="chart-header">
-                            <div class="chart-title">
-                                <div class="chart-icon">⚖️</div>
-                                <div>
-                                    <h3>Calibration Plot</h3>
-                                    <p class="chart-subtitle">Probability accuracy</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="chart-canvas-container-small">
-                            <canvas id="calibrationChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Row 6: Occupation and Gender Distribution -->
-                <div class="charts-row">
-                    <div class="chart-card-half">
-                        <div class="chart-header">
-                            <div class="chart-title">
-                                <div class="chart-icon">👷</div>
-                                <div>
-                                    <h3>Risk by Occupation</h3>
-                                    <p class="chart-subtitle">Manual labor vs other occupations</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="chart-canvas-container">
-                            <canvas id="occupationChart"></canvas>
-                        </div>
-                    </div>
-                    <div class="chart-card-half">
-                        <div class="chart-header">
-                            <div class="chart-title">
-                                <div class="chart-icon">👥</div>
-                                <div>
-                                    <h3>Demographic Disparity</h3>
-                                    <p class="chart-subtitle">Fairness check across groups</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="chart-canvas-container">
-                            <canvas id="disparityChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Row 7: Outreach Funnel and Threshold Analysis -->
-                <div class="charts-row">
-                    <div class="chart-card-half">
-                        <div class="chart-header">
-                            <div class="chart-title">
-                                <div class="chart-icon">📊</div>
-                                <div>
-                                    <h3>Outreach Funnel</h3>
-                                    <p class="chart-subtitle">Campaign conversion metrics</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="chart-canvas-container">
-                            <canvas id="funnelChart"></canvas>
-                        </div>
-                    </div>
-                    <div class="chart-card-half">
-                        <div class="chart-header">
-                            <div class="chart-title">
-                                <div class="chart-icon">🎚️</div>
-                                <div>
-                                    <h3>Threshold Sensitivity</h3>
-                                    <p class="chart-subtitle">Impact of different threshold values</p>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="chart-canvas-container">
-                            <canvas id="thresholdChart"></canvas>
-                        </div>
-                    </div>
+                <div class="chart-canvas-container">
+                    <canvas id="ageRiskChart"></canvas>
                 </div>
             </div>
+            <div class="chart-card-half">
+                <div class="chart-header">
+                    <div class="chart-title">
+                        <div class="chart-icon">📈</div>
+                        <div>
+                            <h3>Monthly Failure Rate Trend</h3>
+                            <p class="chart-subtitle">Authentication failures vs updates over time</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="chart-canvas-container">
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </div>
+    </div>
 
-            <!-- Backend Generated Charts (if available) -->
-            <div class="charts-grid" id="chartsGrid"></div>
-
-            <!-- High Risk Regions Table -->
-            <div class="high-risk-table">
-                <div class="table-header">
-                    <div class="table-icon">🚨</div>
+    <!-- Row 3: Survival Curve Full Width -->
+    <div class="charts-row">
+        <div class="chart-card-full">
+            <div class="chart-header">
+                <div class="chart-title">
+                    <div class="chart-icon">📉</div>
                     <div>
-                        <h3>High-Risk Regions</h3>
-                        <p class="table-description">Regions requiring immediate attention based on risk analysis</p>
+                        <h3>Template Survival Curve (Time-to-Failure)</h3>
+                        <p class="chart-subtitle">Kaplan-Meier style probability of biometric template validity over
+                            time</p>
                     </div>
                 </div>
-                <div id="highRiskTable"></div>
             </div>
+            <div class="chart-canvas-container-wide">
+                <canvas id="survivalChart"></canvas>
+            </div>
+        </div>
+    </div>
 
-            <!-- Recommendations -->
-            <div class="recommendations-section">
-                <div class="section-header">
-                    <div class="section-icon">💡</div>
+    <!-- Row 4: Two charts side by side -->
+    <div class="charts-row">
+        <div class="chart-card-half">
+            <div class="chart-header">
+                <div class="chart-title">
+                    <div class="chart-icon">🔍</div>
                     <div>
-                        <h3>Actionable Recommendations</h3>
-                        <p class="section-subtitle">Data-driven strategies to mitigate identified risks</p>
+                        <h3>SHAP Feature Importance</h3>
+                        <p class="chart-subtitle">Factors driving risk predictions</p>
                     </div>
                 </div>
-                <div id="recommendationsContent"></div>
             </div>
-
-            <!-- AI Deep Analysis Section -->
-            <div class="ai-section" id="aiDeepAnalysisSection" style="display: none;">
-                <div class="section-header">
-                    <div class="section-icon">🤖</div>
+            <div class="chart-canvas-container">
+                <canvas id="shapChart"></canvas>
+            </div>
+        </div>
+        <div class="chart-card-half">
+            <div class="chart-header">
+                <div class="chart-title">
+                    <div class="chart-icon">🏢</div>
                     <div>
-                        <h3>AI Deep Analysis</h3>
-                        <p class="section-subtitle">Advanced insights powered by machine learning</p>
-                    </div>
-                </div>
-                <div id="aiDeepAnalysisContent">
-                    <div class="ai-buttons">
-                        <button class="btn-ai-analyze" onclick="runAIDeepAnalysis()" id="btnDeepAnalysis">
-                            🔍 Generate Deep Analysis
-                        </button>
+                        <h3>Centre Performance</h3>
+                        <p class="chart-subtitle">Capture centre quality grades</p>
                     </div>
                 </div>
             </div>
+            <div class="chart-canvas-container">
+                <canvas id="centreChart"></canvas>
+            </div>
+        </div>
+    </div>
 
-            <!-- AI Policy Recommendations Section -->
-            <div class="ai-section" id="aiPolicySection" style="display: none;">
-                <div class="section-header">
-                    <div class="section-icon">📜</div>
+    <!-- Row 5: ROC/PR Curves and Calibration -->
+    <div class="charts-row">
+        <div class="chart-card-third">
+            <div class="chart-header">
+                <div class="chart-title">
+                    <div class="chart-icon">📐</div>
                     <div>
-                        <h3>AI Policy Recommendations</h3>
-                        <p class="section-subtitle">Data-driven policy change suggestions</p>
-                    </div>
-                </div>
-                <div id="aiPolicyContent">
-                    <div class="ai-buttons">
-                        <button class="btn-ai-analyze" onclick="runAIPolicyRecommendations()" id="btnPolicyRecs">
-                            📊 Generate Policy Recommendations
-                        </button>
+                        <h3>ROC Curve</h3>
+                        <p class="chart-subtitle">Model discrimination</p>
                     </div>
                 </div>
             </div>
+            <div class="chart-canvas-container-small">
+                <canvas id="rocChart"></canvas>
+            </div>
+        </div>
+        <div class="chart-card-third">
+            <div class="chart-header">
+                <div class="chart-title">
+                    <div class="chart-icon">🎯</div>
+                    <div>
+                        <h3>Precision-Recall</h3>
+                        <p class="chart-subtitle">PR curve analysis</p>
+                    </div>
+                </div>
+            </div>
+            <div class="chart-canvas-container-small">
+                <canvas id="prChart"></canvas>
+            </div>
+        </div>
+        <div class="chart-card-third">
+            <div class="chart-header">
+                <div class="chart-title">
+                    <div class="chart-icon">⚖️</div>
+                    <div>
+                        <h3>Calibration Plot</h3>
+                        <p class="chart-subtitle">Probability accuracy</p>
+                    </div>
+                </div>
+            </div>
+            <div class="chart-canvas-container-small">
+                <canvas id="calibrationChart"></canvas>
+            </div>
+        </div>
+    </div>
 
-        </section>
+    <!-- Row 6: Occupation and Gender Distribution -->
+    <div class="charts-row">
+        <div class="chart-card-half">
+            <div class="chart-header">
+                <div class="chart-title">
+                    <div class="chart-icon">👷</div>
+                    <div>
+                        <h3>Risk by Occupation</h3>
+                        <p class="chart-subtitle">Manual labor vs other occupations</p>
+                    </div>
+                </div>
+            </div>
+            <div class="chart-canvas-container">
+                <canvas id="occupationChart"></canvas>
+            </div>
+        </div>
+        <div class="chart-card-half">
+            <div class="chart-header">
+                <div class="chart-title">
+                    <div class="chart-icon">👥</div>
+                    <div>
+                        <h3>Demographic Disparity</h3>
+                        <p class="chart-subtitle">Fairness check across groups</p>
+                    </div>
+                </div>
+            </div>
+            <div class="chart-canvas-container">
+                <canvas id="disparityChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Row 7: Outreach Funnel and Threshold Analysis -->
+    <div class="charts-row">
+        <div class="chart-card-half">
+            <div class="chart-header">
+                <div class="chart-title">
+                    <div class="chart-icon">📊</div>
+                    <div>
+                        <h3>Outreach Funnel</h3>
+                        <p class="chart-subtitle">Campaign conversion metrics</p>
+                    </div>
+                </div>
+            </div>
+            <div class="chart-canvas-container">
+                <canvas id="funnelChart"></canvas>
+            </div>
+        </div>
+        <div class="chart-card-half">
+            <div class="chart-header">
+                <div class="chart-title">
+                    <div class="chart-icon">🎚️</div>
+                    <div>
+                        <h3>Threshold Sensitivity</h3>
+                        <p class="chart-subtitle">Impact of different threshold values</p>
+                    </div>
+                </div>
+            </div>
+            <div class="chart-canvas-container">
+                <canvas id="thresholdChart"></canvas>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <!-- Backend Generated Charts (if available) -->
+    <div class="charts-grid" id="chartsGrid"></div>
+
+    <!-- High Risk Regions Table -->
+    <div class="high-risk-table">
+        <div class="table-header">
+            <div class="table-icon">🚨</div>
+            <div>
+                <h3>High-Risk Regions</h3>
+                <p class="table-description">Regions requiring immediate attention based on risk analysis</p>
+            </div>
+        </div>
+        <div id="highRiskTable"></div>
+    </div>
+
+    <!-- Recommendations -->
+    <div class="recommendations-section">
+        <div class="section-header">
+            <div class="section-icon">💡</div>
+            <div>
+                <h3>Actionable Recommendations</h3>
+                <p class="section-subtitle">Data-driven strategies to mitigate identified risks</p>
+            </div>
+        </div>
+        <div id="recommendationsContent"></div>
+    </div>
+
+    <!-- AI Deep Analysis Section -->
+    <div class="ai-section" id="aiDeepAnalysisSection" style="display: none;">
+        <div class="section-header">
+            <div class="section-icon">🤖</div>
+            <div>
+                <h3>AI Deep Analysis</h3>
+                <p class="section-subtitle">Advanced insights powered by machine learning</p>
+            </div>
+        </div>
+        <div id="aiDeepAnalysisContent">
+            <div class="ai-buttons">
+                <button class="btn-ai-analyze" onclick="runAIDeepAnalysis()" id="btnDeepAnalysis">
+                    🔍 Generate Deep Analysis
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Policy Recommendations Section -->
+    <div class="ai-section" id="aiPolicySection" style="display: none;">
+        <div class="section-header">
+            <div class="section-icon">📜</div>
+            <div>
+                <h3>AI Policy Recommendations</h3>
+                <p class="section-subtitle">Data-driven policy change suggestions</p>
+            </div>
+        </div>
+        <div id="aiPolicyContent">
+            <div class="ai-buttons">
+                <button class="btn-ai-analyze" onclick="runAIPolicyRecommendations()" id="btnPolicyRecs">
+                    📊 Generate Policy Recommendations
+                </button>
+            </div>
+        </div>
+    </div>
+
+    </section>
     </div>
 
     <!-- Progress Overlay -->
@@ -1737,7 +1785,7 @@
 
         async function loadStates() {
             const select = document.getElementById('stateFilter');
-            
+
             // Default list of all Indian states and UTs
             const indianStates = [
                 'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar', 'Chhattisgarh',
@@ -1748,7 +1796,7 @@
                 'Andaman and Nicobar Islands', 'Chandigarh', 'Dadra and Nagar Haveli and Daman and Diu',
                 'Delhi', 'Jammu and Kashmir', 'Ladakh', 'Lakshadweep', 'Puducherry'
             ];
-            
+
             // Helper to populate states
             const populateStates = (states) => {
                 states.forEach(state => {
@@ -1758,15 +1806,15 @@
                     select.appendChild(option);
                 });
             };
-            
+
             // Load default states immediately
             populateStates(indianStates);
-            
+
             // Try to get states from API (will replace if successful)
             try {
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 3000); // 3 second timeout
-                
+
                 const response = await fetch(`${ML_API}/api/risk/states`, { signal: controller.signal });
                 clearTimeout(timeoutId);
                 const data = await response.json();
@@ -1869,25 +1917,25 @@
 
             // Get the records limit from the form
             const recordsLimit = parseInt(document.getElementById('recordsLimit').value) || 5000;
-            
+
             // Extract data with smart defaults based on analysis parameters
             const summary = data.summary || {};
             const totalRecords = summary.total_records_analyzed || recordsLimit;
             const highRiskCount = summary.high_risk_count || Math.round(totalRecords * (0.12 + Math.random() * 0.08)); // 12-20% high risk
             const avgRiskScore = summary.average_risk_score ? summary.average_risk_score * 100 : (35 + Math.random() * 20); // 35-55%
             const modelAccuracy = data.model_metrics?.accuracy ? data.model_metrics.accuracy * 100 : (85 + Math.random() * 10); // 85-95%
-            
+
             // Calculate regions - use state filter or default to multiple states
             const selectedState = document.getElementById('stateFilter').value;
             const regionsAnalyzed = summary.regions_analyzed || (selectedState ? 1 : Math.floor(8 + Math.random() * 12)); // 8-20 states if all
-            
+
             // Model metrics with realistic defaults
             const precision = data.model_metrics?.precision || (0.82 + Math.random() * 0.1);
             const recall = data.model_metrics?.recall || (0.75 + Math.random() * 0.12);
             const f1Score = data.model_metrics?.f1_score || (0.78 + Math.random() * 0.1);
             const aucRoc = data.model_metrics?.auc_roc || (0.85 + Math.random() * 0.1);
             const criticalCases = Math.round(highRiskCount * (0.15 + Math.random() * 0.1)); // 15-25% of high risk are critical
-            
+
             // Safe percentage calculation
             const highRiskPercent = totalRecords > 0 ? ((highRiskCount / totalRecords) * 100).toFixed(1) : '0.0';
 
@@ -2023,14 +2071,51 @@
             const viz = data.visualizations || {};
             let chartsHtml = '';
 
+            // Extract dynamic insights from API response
+            const highRiskRegions = data.high_risk_regions || [];
+            const survivalData = data.survival_data || {};
+            const ageBucketAnalysis = data.age_bucket_analysis || {};
+            const featureImportance = data.feature_importance || {};
+            const centrePerformance = data.centre_performance || [];
+
+            // Get highest and lowest risk states dynamically
+            const highestRiskState = highRiskRegions.length > 0 ? highRiskRegions[0].state || 'N/A' : 'N/A';
+            const lowestRiskState = highRiskRegions.length > 1 ? highRiskRegions[highRiskRegions.length - 1].state || 'N/A' : 'N/A';
+
+            // Get survival curve stats dynamically
+            const medianSurvival = survivalData.median_survival_years ? survivalData.median_survival_years.toFixed(1) + ' years' : 'N/A';
+            const fiveYearRate = survivalData.five_year_survival_rate ? Math.round(survivalData.five_year_survival_rate * 100) + '%' : 'N/A';
+
+            // Get age bucket insights dynamically
+            const ageBuckets = ageBucketAnalysis.buckets || [];
+            let highestRiskAge = '65+';
+            let lowestRiskAge = '18-34';
+            if (ageBuckets.length > 0) {
+                const sortedBuckets = [...ageBuckets].sort((a, b) => (b.avg_risk || 0) - (a.avg_risk || 0));
+                highestRiskAge = sortedBuckets[0]?.age_group || '65+';
+                lowestRiskAge = sortedBuckets[sortedBuckets.length - 1]?.age_group || '18-34';
+            }
+
+            // Get top feature importance factors dynamically
+            const featureKeys = Object.keys(featureImportance);
+            const topFactor = featureKeys.length > 0 ? featureKeys[0].replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Age';
+            const secondFactor = featureKeys.length > 1 ? featureKeys[1].replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Region';
+
+            // Calculate biometric update rate dynamically
+            const avgBiometricRatio = data.summary?.avg_biometric_update_ratio ? Math.round(data.summary.avg_biometric_update_ratio * 100) : 23;
+
+            // Calculate critical and high risk counts dynamically
+            const criticalCount = highRiskRegions.filter(r => r.risk_score >= 0.75).length || Math.round(highRiskCount * 0.3);
+            const highCount = highRiskRegions.filter(r => r.risk_score >= 0.5 && r.risk_score < 0.75).length || Math.round(highRiskCount * 0.7);
+
             const chartDescriptions = {
                 risk_distribution: {
                     icon: '📊',
                     title: 'Risk Distribution by State',
                     description: 'Displays the average biometric re-enrollment risk score across different states. Higher scores indicate greater likelihood of authentication failures requiring proactive intervention.',
                     insights: [
-                        { label: 'Highest Risk', value: 'Bihar', type: 'danger' },
-                        { label: 'Lowest Risk', value: 'Kerala', type: 'info' },
+                        { label: 'Highest Risk', value: highestRiskState, type: 'danger' },
+                        { label: 'Lowest Risk', value: lowestRiskState, type: 'info' },
                         { label: 'National Avg', value: `${avgRiskScore.toFixed(1)}%`, type: 'warning' }
                     ]
                 },
@@ -2039,8 +2124,8 @@
                     title: 'Risk Category Distribution',
                     description: 'Breakdown of analyzed records by risk severity levels: Critical (>75%), High (60-75%), Medium (40-60%), and Low (<40%). Helps prioritize outreach efforts.',
                     insights: [
-                        { label: 'Critical Cases', value: `${Math.round(highRiskCount * 0.3)}`, type: 'danger' },
-                        { label: 'High Risk', value: `${Math.round(highRiskCount * 0.7)}`, type: 'warning' }
+                        { label: 'Critical Cases', value: `${criticalCount}`, type: 'danger' },
+                        { label: 'High Risk', value: `${highCount}`, type: 'warning' }
                     ]
                 },
                 survival_curve: {
@@ -2048,8 +2133,8 @@
                     title: 'Template Survival Curve (Time-to-Failure)',
                     description: 'Kaplan-Meier style curve showing the probability of biometric templates remaining valid over time. Steeper decline indicates faster degradation requiring earlier re-enrollment.',
                     insights: [
-                        { label: 'Median Survival', value: '4.2 years', type: 'info' },
-                        { label: '5-Year Rate', value: '68%', type: 'warning' }
+                        { label: 'Median Survival', value: medianSurvival, type: 'info' },
+                        { label: '5-Year Rate', value: fiveYearRate, type: 'warning' }
                     ]
                 },
                 age_bucket_chart: {
@@ -2057,8 +2142,8 @@
                     title: 'Risk by Age Bucket (5-Tier)',
                     description: 'Risk analysis segmented into 5 age groups: 0-17, 18-34, 35-49, 50-64, and 65+. Elderly populations typically show 2.5x higher risk due to biometric template degradation.',
                     insights: [
-                        { label: 'Highest Risk Age', value: '65+', type: 'danger' },
-                        { label: 'Lowest Risk Age', value: '18-34', type: 'info' }
+                        { label: 'Highest Risk Age', value: highestRiskAge, type: 'danger' },
+                        { label: 'Lowest Risk Age', value: lowestRiskAge, type: 'info' }
                     ]
                 },
                 biometric_ratio: {
@@ -2066,7 +2151,7 @@
                     title: 'Biometric Update Ratios',
                     description: 'Compares the ratio of biometric updates to total enrollments across regions. Lower ratios indicate potential gaps in re-enrollment outreach programs.',
                     insights: [
-                        { label: 'Update Rate', value: '23%', type: 'warning' },
+                        { label: 'Update Rate', value: `${avgBiometricRatio}%`, type: 'warning' },
                         { label: 'Target Rate', value: '40%', type: 'info' }
                     ]
                 },
@@ -2075,8 +2160,8 @@
                     title: 'SHAP Feature Importance (Explainability)',
                     description: 'Machine learning explainability showing which factors most strongly influence risk predictions. Higher SHAP values indicate greater influence on the model\'s decisions.',
                     insights: [
-                        { label: 'Top Factor', value: 'Age', type: 'info' },
-                        { label: 'Second Factor', value: 'Region', type: 'info' }
+                        { label: 'Top Factor', value: topFactor, type: 'info' },
+                        { label: 'Second Factor', value: secondFactor, type: 'info' }
                     ]
                 },
                 age_risk_heatmap: {
@@ -2105,7 +2190,7 @@
                             `).join('')}
                         </div>
                     ` : '';
-                    
+
                     chartsHtml += `
                         <div class="chart-card">
                             <div class="chart-header">
@@ -2366,13 +2451,13 @@
 
         function generateAllCharts(data) {
             destroyCharts();
-            
+
             const summary = data.summary || {};
             const totalRecords = summary.total_records_analyzed || 5000;
             const highRiskCount = summary.high_risk_count || Math.round(totalRecords * 0.15);
             const avgRiskScore = summary.average_risk_score || 0.45;
             const selectedState = document.getElementById('stateFilter').value;
-            
+
             // Generate state-specific or general data
             const stateData = generateStateRiskData(selectedState, totalRecords);
             const categoryData = generateCategoryData(highRiskCount, totalRecords);
@@ -2381,46 +2466,46 @@
             const survivalData = generateSurvivalData();
             const shapData = generateShapData();
             const centreData = generateCentreData(selectedState);
-            
+
             // 1. State Risk Distribution Chart
             createStateRiskChart(stateData);
-            
+
             // 2. Risk Category Pie Chart
             createRiskCategoryChart(categoryData);
-            
+
             // 3. Age Bucket Risk Chart
             createAgeRiskChart(ageData);
-            
+
             // 4. Monthly Trend Chart
             createTrendChart(trendData);
-            
+
             // 5. Survival Curve
             createSurvivalChart(survivalData);
-            
+
             // 6. SHAP Feature Importance
             createShapChart(shapData);
-            
+
             // 7. Centre Performance
             createCentreChart(centreData);
-            
+
             // 8. ROC Curve
             createROCChart();
-            
+
             // 9. Precision-Recall Chart
             createPRChart();
-            
+
             // 10. Calibration Chart
             createCalibrationChart();
-            
+
             // 11. Occupation Risk Chart
             createOccupationChart(selectedState);
-            
+
             // 12. Demographic Disparity Chart
             createDisparityChart();
-            
+
             // 13. Outreach Funnel
             createFunnelChart(totalRecords);
-            
+
             // 14. Threshold Sensitivity
             createThresholdChart(totalRecords);
         }
@@ -2444,7 +2529,7 @@
                 { state: 'Punjab', risk: 0.28, count: 160 },
                 { state: 'Kerala', risk: 0.22, count: 180 }
             ];
-            
+
             if (selectedState && selectedState !== '') {
                 const found = allStates.find(s => s.state === selectedState);
                 if (found) {
@@ -2508,7 +2593,7 @@
         function createStateRiskChart(data) {
             const ctx = document.getElementById('stateRiskChart');
             if (!ctx) return;
-            
+
             // Ensure we have data
             if (!data || data.length === 0) {
                 data = [
@@ -2529,10 +2614,10 @@
                     { state: 'Kerala', risk: 0.22 }
                 ];
             }
-            
+
             // Sort by risk descending and take top 15
             data = data.sort((a, b) => b.risk - a.risk).slice(0, 15);
-            
+
             // Generate gradient colors based on risk level
             const getColor = (risk) => {
                 if (risk >= 0.65) return '#dc2626'; // Critical - Red
@@ -2541,10 +2626,10 @@
                 if (risk >= 0.35) return '#84cc16'; // Medium - Lime
                 return '#10b981'; // Low - Green
             };
-            
+
             const colors = data.map(d => getColor(d.risk));
             const riskValues = data.map(d => Math.round(d.risk * 100));
-            
+
             chartInstances.stateRisk = new Chart(ctx, {
                 type: 'bar',
                 data: {
@@ -2592,11 +2677,11 @@
                         x: {
                             min: 0,
                             max: 100,
-                            grid: { 
+                            grid: {
                                 color: '#e5e7eb',
                                 drawBorder: false
                             },
-                            ticks: { 
+                            ticks: {
                                 callback: v => v + '%',
                                 stepSize: 20,
                                 font: { size: 11 }
@@ -2622,18 +2707,18 @@
                     }
                 }
             });
-            
+
             // Update stats cards below the chart
             const criticalCount = data.filter(d => d.risk >= 0.65).length;
             const highCount = data.filter(d => d.risk >= 0.45 && d.risk < 0.65).length;
             const lowCount = data.filter(d => d.risk < 0.45).length;
             const avgRisk = Math.round(data.reduce((sum, d) => sum + d.risk, 0) / data.length * 100);
-            
+
             const criticalEl = document.getElementById('criticalStatesCount');
             const highEl = document.getElementById('highRiskStatesCount');
             const lowEl = document.getElementById('lowRiskStatesCount');
             const avgEl = document.getElementById('avgNationalRisk');
-            
+
             if (criticalEl) criticalEl.textContent = criticalCount;
             if (highEl) highEl.textContent = highCount;
             if (lowEl) lowEl.textContent = lowCount;
@@ -2643,7 +2728,7 @@
         function createRiskCategoryChart(data) {
             const ctx = document.getElementById('riskCategoryChart');
             if (!ctx) return;
-            
+
             chartInstances.riskCategory = new Chart(ctx, {
                 type: 'doughnut',
                 data: {
@@ -2672,7 +2757,7 @@
         function createAgeRiskChart(data) {
             const ctx = document.getElementById('ageRiskChart');
             if (!ctx) return;
-            
+
             chartInstances.ageRisk = new Chart(ctx, {
                 type: 'bar',
                 data: {
@@ -2713,7 +2798,7 @@
         function createTrendChart(data) {
             const ctx = document.getElementById('trendChart');
             if (!ctx) return;
-            
+
             chartInstances.trend = new Chart(ctx, {
                 type: 'line',
                 data: {
@@ -2766,7 +2851,7 @@
         function createSurvivalChart(data) {
             const ctx = document.getElementById('survivalChart');
             if (!ctx) return;
-            
+
             chartInstances.survival = new Chart(ctx, {
                 type: 'line',
                 data: {
@@ -2813,12 +2898,12 @@
         function createShapChart(data) {
             const ctx = document.getElementById('shapChart');
             if (!ctx) return;
-            
+
             const colors = data.importance.map((v, i) => {
                 const hue = 250 - (i * 20);
                 return `hsl(${hue}, 70%, 55%)`;
             });
-            
+
             chartInstances.shap = new Chart(ctx, {
                 type: 'bar',
                 data: {
@@ -2849,14 +2934,14 @@
         function createCentreChart(data) {
             const ctx = document.getElementById('centreChart');
             if (!ctx) return;
-            
+
             const gradeColors = data.grades.map(g => {
                 if (g === 'A') return '#10b981';
                 if (g === 'B') return '#3b82f6';
                 if (g === 'C') return '#f59e0b';
                 return '#ef4444';
             });
-            
+
             chartInstances.centre = new Chart(ctx, {
                 type: 'bar',
                 data: {
@@ -2887,10 +2972,10 @@
         function createROCChart() {
             const ctx = document.getElementById('rocChart');
             if (!ctx) return;
-            
+
             const fpr = [0, 0.05, 0.1, 0.15, 0.2, 0.3, 0.4, 0.5, 0.6, 0.8, 1.0];
             const tpr = [0, 0.45, 0.62, 0.72, 0.78, 0.85, 0.90, 0.93, 0.96, 0.98, 1.0];
-            
+
             chartInstances.roc = new Chart(ctx, {
                 type: 'line',
                 data: {
@@ -2928,10 +3013,10 @@
         function createPRChart() {
             const ctx = document.getElementById('prChart');
             if (!ctx) return;
-            
+
             const recall = [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0];
             const precision = [0.95, 0.92, 0.88, 0.85, 0.82, 0.78, 0.72, 0.65, 0.55, 0.42, 0.25];
-            
+
             chartInstances.pr = new Chart(ctx, {
                 type: 'line',
                 data: {
@@ -2960,10 +3045,10 @@
         function createCalibrationChart() {
             const ctx = document.getElementById('calibrationChart');
             if (!ctx) return;
-            
+
             const predicted = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9];
             const observed = [0.08, 0.18, 0.28, 0.42, 0.48, 0.62, 0.72, 0.78, 0.88];
-            
+
             chartInstances.calibration = new Chart(ctx, {
                 type: 'scatter',
                 data: {
@@ -3000,7 +3085,7 @@
         function createOccupationChart(selectedState) {
             const ctx = document.getElementById('occupationChart');
             if (!ctx) return;
-            
+
             chartInstances.occupation = new Chart(ctx, {
                 type: 'bar',
                 data: {
@@ -3031,7 +3116,7 @@
         function createDisparityChart() {
             const ctx = document.getElementById('disparityChart');
             if (!ctx) return;
-            
+
             chartInstances.disparity = new Chart(ctx, {
                 type: 'bar',
                 data: {
@@ -3070,13 +3155,13 @@
         function createFunnelChart(totalRecords) {
             const ctx = document.getElementById('funnelChart');
             if (!ctx) return;
-            
+
             const flagged = Math.round(totalRecords * 0.15);
             const notified = Math.round(flagged * 0.9);
             const contacted = Math.round(notified * 0.7);
             const scheduled = Math.round(contacted * 0.6);
             const reenrolled = Math.round(scheduled * 0.85);
-            
+
             chartInstances.funnel = new Chart(ctx, {
                 type: 'bar',
                 data: {
@@ -3103,11 +3188,11 @@
         function createThresholdChart(totalRecords) {
             const ctx = document.getElementById('thresholdChart');
             if (!ctx) return;
-            
+
             const thresholds = [0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9];
             const flaggedCounts = thresholds.map(t => Math.round(totalRecords * (1.1 - t)));
             const preventedFailures = thresholds.map((t, i) => Math.round(flaggedCounts[i] * (0.9 - t * 0.3)));
-            
+
             chartInstances.threshold = new Chart(ctx, {
                 type: 'line',
                 data: {
