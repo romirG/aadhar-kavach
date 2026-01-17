@@ -1,8 +1,0 @@
-Traceback (most recent call last):
-  File "C:\Users\romir\Documents\UIDAI Datathon\ml_backend\main.py", line 135, in <module>
-    spec.loader.exec_module(risk_predictor_module)
-  File "<frozen importlib._bootstrap_external>", line 995, in exec_module
-  File "<frozen importlib._bootstrap>", line 488, in _call_with_frames_removed
-  File "C:\Users\romir\Documents\UIDAI Datathon\biometric-risk-predictor\backend\api\risk_predictor.py", line 17, in <module>
-    from services.biometric_risk_service import biometric_risk_service
-ModuleNotFoundError: No module named 'services.biometric_risk_service'

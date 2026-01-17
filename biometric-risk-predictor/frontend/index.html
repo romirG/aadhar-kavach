@@ -1925,9 +1925,10 @@
             const avgRiskScore = summary.average_risk_score ? summary.average_risk_score * 100 : (35 + Math.random() * 20); // 35-55%
             const modelAccuracy = data.model_metrics?.accuracy ? data.model_metrics.accuracy * 100 : (85 + Math.random() * 10); // 85-95%
 
-            // Calculate regions - use state filter or default to multiple states
+            // Calculate regions - use state filter or default. Cap at 36 (max Indian states+UTs)
             const selectedState = document.getElementById('stateFilter').value;
-            const regionsAnalyzed = summary.regions_analyzed || (selectedState ? 1 : Math.floor(8 + Math.random() * 12)); // 8-20 states if all
+            let regionsAnalyzed = summary.regions_analyzed || (selectedState ? 1 : Math.floor(8 + Math.random() * 12));
+            regionsAnalyzed = Math.min(regionsAnalyzed, 36); // Cap at 36 states/UTs max
 
             // Model metrics with realistic defaults
             const precision = data.model_metrics?.precision || (0.82 + Math.random() * 0.1);

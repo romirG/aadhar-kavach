@@ -580,6 +580,11 @@ async function startMonitoring() {
 }
 
 function displayMonitoringResults(results) {
+    // IMPORTANT: Add focus_area from form to stored results for AI regeneration
+    const stateInput = document.getElementById('monitoring-state');
+    const focusArea = stateInput ? stateInput.value : 'All India';
+    results.focus_area = focusArea === 'All India' ? 'All India' : focusArea;
+
     window.lastMonitoringResults = results;
     const riskColor = results.risk.risk_level === 'Low' ? '#00ff88' :
         results.risk.risk_level === 'Medium' ? '#ffaa00' : '#ff4444';

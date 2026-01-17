@@ -14,7 +14,7 @@ import os
 # Add parent directory to path for imports
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from services.biometric_risk_service import biometric_risk_service
+from biometric_services.biometric_risk_service import biometric_risk_service
 
 logger = logging.getLogger(__name__)
 
