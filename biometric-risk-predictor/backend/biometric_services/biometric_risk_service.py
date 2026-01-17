@@ -158,7 +158,7 @@ class BiometricRiskService:
                 },
                 "summary": {
                     "total_records_analyzed": data['total_records'],
-                    "regions_analyzed": len(features_df),
+                    "regions_analyzed": features_df['state'].nunique() if 'state' in features_df.columns else len(features_df),
                     "high_risk_count": len(high_risk_regions),
                     "average_risk_score": float(features_df['risk_score'].mean()) if 'risk_score' in features_df.columns else 0,
                     "model_accuracy": model_results.get('accuracy', 0),

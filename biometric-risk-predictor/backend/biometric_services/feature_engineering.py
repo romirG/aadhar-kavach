@@ -17,6 +17,7 @@ Enhanced with ChatGPT specifications:
 import pandas as pd
 import numpy as np
 from datetime import datetime
+import time
 from typing import Dict, List, Tuple, Optional
 from sklearn.preprocessing import LabelEncoder
 
@@ -271,7 +272,8 @@ class FeatureEngineer:
                 df['time_since_update_years'] = 1.0
         else:
             # Simulate time based on row index if no date available
-            np.random.seed(42)
+            # Use time-based seed for unique results per call
+            np.random.seed(int(time.time() * 1000) % (2**32))
             df['time_since_update_days'] = np.random.randint(30, 730, len(df))
             df['time_since_update_years'] = df['time_since_update_days'] / 365.25
         
