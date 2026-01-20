@@ -1,32 +1,33 @@
 {
     "version": 2,
-    "name": "uidai-aadhaar-hub",
-    "builds": [
+    "rewrites": [
         {
-            "src": "server/public/**",
-            "use": "@vercel/static"
-        }
-    ],
-    "routes": [
-        {
-            "src": "/api/ml/(.*)",
-            "dest": "https://aadhar-kavach.onrender.com/api/ml/$1"
+            "source": "/api/ml/:path*",
+            "destination": "https://aadhar-kavach.onrender.com/api/ml/:path*"
         },
         {
-            "src": "/api/forecast/(.*)",
-            "dest": "https://aadhar-kavach.onrender.com/api/forecast/$1"
+            "source": "/api/forecast/:path*",
+            "destination": "https://aadhar-kavach.onrender.com/api/forecast/:path*"
         },
         {
-            "src": "/api/monitor/(.*)",
-            "dest": "https://aadhar-kavach.onrender.com/api/monitor/$1"
+            "source": "/api/monitor/:path*",
+            "destination": "https://aadhar-kavach.onrender.com/api/monitor/:path*"
         },
         {
-            "src": "/health",
-            "dest": "https://aadhar-kavach.onrender.com/health"
+            "source": "/api/enrolment/:path*",
+            "destination": "https://aadhar-kavach.onrender.com/api/enrolment/:path*"
         },
         {
-            "src": "/(.*)",
-            "dest": "/server/public/$1"
+            "source": "/api/dashboard/:path*",
+            "destination": "https://aadhar-kavach.onrender.com/api/dashboard/:path*"
+        },
+        {
+            "source": "/api/hotspots/:path*",
+            "destination": "https://aadhar-kavach.onrender.com/api/hotspots/:path*"
+        },
+        {
+            "source": "/health",
+            "destination": "https://aadhar-kavach.onrender.com/health"
         }
     ],
     "headers": [
