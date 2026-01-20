@@ -1,0 +1,51 @@
+{
+    "version": 2,
+    "name": "uidai-aadhaar-hub",
+    "builds": [
+        {
+            "src": "server/public/**",
+            "use": "@vercel/static"
+        }
+    ],
+    "routes": [
+        {
+            "src": "/api/ml/(.*)",
+            "dest": "https://aadhar-kavach.onrender.com/api/ml/$1"
+        },
+        {
+            "src": "/api/forecast/(.*)",
+            "dest": "https://aadhar-kavach.onrender.com/api/forecast/$1"
+        },
+        {
+            "src": "/api/monitor/(.*)",
+            "dest": "https://aadhar-kavach.onrender.com/api/monitor/$1"
+        },
+        {
+            "src": "/health",
+            "dest": "https://aadhar-kavach.onrender.com/health"
+        },
+        {
+            "src": "/(.*)",
+            "dest": "/server/public/$1"
+        }
+    ],
+    "headers": [
+        {
+            "source": "/(.*)",
+            "headers": [
+                {
+                    "key": "Access-Control-Allow-Origin",
+                    "value": "*"
+                },
+                {
+                    "key": "Access-Control-Allow-Methods",
+                    "value": "GET, POST, PUT, DELETE, OPTIONS"
+                },
+                {
+                    "key": "Access-Control-Allow-Headers",
+                    "value": "Content-Type, Authorization"
+                }
+            ]
+        }
+    ]
+}
