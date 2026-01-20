@@ -6,6 +6,35 @@ const API_BASE = 'http://localhost:3001/api';
 const ML_API_BASE = 'http://localhost:8000';
 
 // =====================================
+// Theme Toggle
+// =====================================
+
+function initTheme() {
+    const savedTheme = localStorage.getItem('theme') || 'dark';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    updateThemeIcon(savedTheme);
+}
+
+function toggleTheme() {
+    const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+    updateThemeIcon(newTheme);
+}
+
+function updateThemeIcon(theme) {
+    const themeIcon = document.querySelector('.theme-icon');
+    if (themeIcon) {
+        themeIcon.textContent = theme === 'dark' ? '☀️' : '🌙';
+    }
+}
+
+// Initialize theme on page load
+document.addEventListener('DOMContentLoaded', initTheme);
+
+// =====================================
 // Status Check
 // =====================================
 
@@ -144,7 +173,7 @@ async function loadDashboard() {
             </div>
         </div>
         
-        <h3 style="margin: 20px 0 15px; color: #00d4ff;">📊 Data Sources Status</h3>
+        <h3 style="margin: 20px 0 15px; color: #000080;">📊 Data Sources Status</h3>
         <div class="alert alert-info">
             <strong>Enrolment API:</strong> ${enrolment.records?.length || 0} records loaded
             ${enrolment.isMockData ? ' (Mock Data)' : ''}
@@ -175,19 +204,19 @@ async function loadHotspots() {
                         <div class="stat-label">Regions Analyzed</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-value" style="color: #ff4444;">${summary?.coldspotCount || 0}</div>
+                        <div class="stat-value" style="color: #DC3545;">${summary?.coldspotCount || 0}</div>
                         <div class="stat-label">Coldspots (Low Coverage)</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-value" style="color: #00ff88;">${summary?.hotspotCount || 0}</div>
+                        <div class="stat-value" style="color: #138808;">${summary?.hotspotCount || 0}</div>
                         <div class="stat-label">Hotspots (High Coverage)</div>
                     </div>
                 </div>
                 
-                <h3 style="margin: 20px 0 15px; color: #ff6666;">🔴 Priority Coldspots (Need Intervention)</h3>
+                <h3 style="margin: 20px 0 15px; color: #DC3545;">🔴 Priority Coldspots (Need Intervention)</h3>
                 ${renderHotspotList(coldspots || [], 'coldspot')}
                 
-                <h3 style="margin: 20px 0 15px; color: #00ff88;">🟢 Top Performing Hotspots</h3>
+                <h3 style="margin: 20px 0 15px; color: #138808;">🟢 Top Performing Hotspots</h3>
                 ${renderHotspotList(hotspots || [], 'hotspot')}
             `);
         } else {
@@ -218,15 +247,15 @@ async function loadAnomalies() {
             showContent(`
                 <div class="stats-grid">
                     <div class="stat-card">
-                        <div class="stat-value" style="color: #ffaa00;">${summary?.totalAnomalies || 0}</div>
+                        <div class="stat-value" style="color: #FF9933;">${summary?.totalAnomalies || 0}</div>
                         <div class="stat-label">Total Anomalies</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-value" style="color: #ff4444;">${summary?.critical || 0}</div>
+                        <div class="stat-value" style="color: #DC3545;">${summary?.critical || 0}</div>
                         <div class="stat-label">Critical</div>
                     </div>
                     <div class="stat-card">
-                        <div class="stat-value" style="color: #ffaa00;">${summary?.high || 0}</div>
+                        <div class="stat-value" style="color: #FF9933;">${summary?.high || 0}</div>
                         <div class="stat-label">High Priority</div>
                     </div>
                 </div>
@@ -239,7 +268,7 @@ async function loadAnomalies() {
                 <div class="alert alert-info">
                     <strong>Anomaly Detection:</strong> No anomalies detected or API unavailable.
                 </div>
-                <p style="margin-top: 15px; color: #aaa;">
+                <p style="margin-top: 15px; color: #6c757d;">
                     The anomaly detection system uses Isolation Forest and ensemble ML models 
                     to identify unusual patterns in enrollment data.
                 </p>
@@ -289,7 +318,7 @@ async function loadGenderTracker() {
                     <div class="stat-label">Districts Analyzed</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-value" style="color: #ff4444;">${totalHighRisk}</div>
+                    <div class="stat-value" style="color: #DC3545;">${totalHighRisk}</div>
                     <div class="stat-label">High-Risk Districts</div>
                 </div>
                 <div class="stat-card">
@@ -298,7 +327,7 @@ async function loadGenderTracker() {
                 </div>
             </div>
 
-            <h3 style="margin: 25px 0 15px; color: #ff6666;">⚠️ High-Risk Districts (Gender Gap > 3%)</h3>
+            <h3 style="margin: 25px 0 15px; color: #DC3545;">⚠️ High-Risk Districts (Gender Gap > 3%)</h3>
             <table class="data-table">
                 <thead>
                     <tr>
@@ -315,13 +344,13 @@ async function loadGenderTracker() {
                         <tr>
                             <td>${d.district}</td>
                             <td>${d.state}</td>
-                            <td style="color: #ff4444; font-weight: bold;">${(d.genderGap * 100).toFixed(1)}%</td>
+                            <td style="color: #DC3545; font-weight: bold;">${(d.genderGap * 100).toFixed(1)}%</td>
                             <td>${(d.femaleCoverageRatio * 100).toFixed(1)}%</td>
                             <td>${(d.maleCoverageRatio * 100).toFixed(1)}%</td>
                             <td>
                                 <span style="padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;
                                     background: ${d.riskLevel === 'CRITICAL' ? '#ff0000' : d.riskLevel === 'HIGH' ? '#ff9900' : '#ffcc00'}; 
-                                    color: #fff;">
+                                    color: #1a1a2e;">
                                     ${d.riskLevel}
                                 </span>
                             </td>
@@ -330,7 +359,7 @@ async function loadGenderTracker() {
                 </tbody>
             </table>
 
-            <h3 style="margin: 25px 0 15px; color: #00d4ff;">📊 State-wise Gender Coverage</h3>
+            <h3 style="margin: 25px 0 15px; color: #000080;">📊 State-wise Gender Coverage</h3>
             <table class="data-table">
                 <thead>
                     <tr>
@@ -346,7 +375,7 @@ async function loadGenderTracker() {
                             <td>${s.state}</td>
                             <td>${(s.femaleCoverageRatio * 100).toFixed(1)}%</td>
                             <td>${(s.maleCoverageRatio * 100).toFixed(1)}%</td>
-                            <td style="color: ${s.genderGap > 0.03 ? '#ff4444' : '#00ff88'};">
+                            <td style="color: ${s.genderGap > 0.03 ? '#DC3545' : '#138808'};">
                                 ${(s.genderGap * 100).toFixed(1)}%
                             </td>
                         </tr>
@@ -386,8 +415,8 @@ async function loadRiskPredictor() {
                 <div style="text-align: center; margin: 30px 0;">
                     <a href="/risk_analysis.html" style="
                         display: inline-block;
-                        background: linear-gradient(135deg, #7b2ff7, #00d4ff);
-                        color: #fff;
+                        background: linear-gradient(135deg, #FF9933, #000080);
+                        color: #1a1a2e;
                         text-decoration: none;
                         padding: 15px 40px;
                         font-size: 1.1rem;
@@ -417,8 +446,8 @@ async function loadRiskPredictor() {
                 <div class="alert alert-warning">
                     <strong>ML Backend Offline:</strong> Start the ML backend to use risk prediction.
                 </div>
-                <p style="margin-top: 15px; color: #aaa;">
-                    Run: <code style="background: #333; padding: 5px 10px; border-radius: 5px;">
+                <p style="margin-top: 15px; color: #6c757d;">
+                    Run: <code style="background: #dee2e6; padding: 5px 10px; border-radius: 5px;">
                     cd ml_backend && python -m uvicorn main:app --reload
                     </code>
                 </p>
@@ -449,11 +478,11 @@ async function loadForecast() {
                     <p>The ARIMA enrollment forecaster requires the Python FastAPI backend.</p>
                     <p style="margin-top: 15px;">
                         <strong>Start the backend:</strong><br>
-                        <code style="background: #333; padding: 5px 10px; border-radius: 5px; display: inline-block; margin-top: 5px;">
+                        <code style="background: #dee2e6; padding: 5px 10px; border-radius: 5px; display: inline-block; margin-top: 5px;">
                         cd ml_backend && python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
                         </code>
                     </p>
-                    <p style="margin-top: 15px; color: #aaa; font-size: 0.9em;">
+                    <p style="margin-top: 15px; color: #6c757d; font-size: 0.9em;">
                         This will enable full ARIMA forecasting with:<br>
                         ✅ Automatic stationarity testing<br>
                         ✅ Confidence intervals from statsmodels<br>
@@ -500,7 +529,7 @@ async function loadForecast() {
                         Select District (${districts.length} available):
                     </label>
                     <div style="display: flex; gap: 10px;">
-                        <select id="district-select" style="flex: 1; padding: 10px; border-radius: 4px; border: 1px solid #444; background: #222; color: #fff;">
+                        <select id="district-select" style="flex: 1; padding: 10px; border-radius: 4px; border: 1px solid #dee2e6; background: #FFFFFFFFF; color: #1a1a2e;">
                             <option value="">-- Choose a district --</option>
                             ${districts.map(d => `<option value="${d}">${d}</option>`).join('')}
                         </select>
@@ -605,7 +634,7 @@ async function runForecast() {
                 </div>
             </div>
 
-            <div style="background: #1a1a1a; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+            <div style="background: #F5F5F5; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
                 <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
                     <span><strong>Model:</strong> ARIMA${JSON.stringify(historical_stats.order)}</span>
                     <span><strong>Confidence:</strong> ${(confidence_level * 100).toFixed(0)}%</span>
@@ -652,7 +681,7 @@ async function runForecast() {
                     {
                         label: 'Predicted Enrollment',
                         data: predicted,
-                        borderColor: '#00ff88',
+                        borderColor: '#138808',
                         backgroundColor: 'rgba(0, 255, 136, 0.1)',
                         borderWidth: 3,
                         fill: false,
@@ -687,11 +716,11 @@ async function runForecast() {
                     title: {
                         display: true,
                         text: `Enrollment Forecast - ${district}`,
-                        color: '#fff',
+                        color: '#1a1a2e',
                         font: { size: 16 }
                     },
                     legend: {
-                        labels: { color: '#fff' }
+                        labels: { color: '#1a1a2e' }
                     },
                     tooltip: {
                         callbacks: {
@@ -703,17 +732,17 @@ async function runForecast() {
                 },
                 scales: {
                     x: {
-                        ticks: { color: '#aaa' },
-                        grid: { color: '#333' }
+                        ticks: { color: '#6c757d' },
+                        grid: { color: '#dee2e6' }
                     },
                     y: {
                         ticks: { 
-                            color: '#aaa',
+                            color: '#6c757d',
                             callback: function(value) {
                                 return formatNumber(value);
                             }
                         },
-                        grid: { color: '#333' }
+                        grid: { color: '#dee2e6' }
                     }
                 }
             }
@@ -745,13 +774,13 @@ async function loadMonitoring() {
                 <div class="monitoring-controls" style="margin-top: 20px;">
                     <div class="stats-grid">
                         <div class="stat-card" style="text-align: left;">
-                            <label style="display: block; margin-bottom: 8px; color: #00d4ff;">Monitoring Type</label>
+                            <label style="display: block; margin-bottom: 8px; color: #000080;">Monitoring Type</label>
                             <select id="monitoring-intent" class="monitoring-select">
                                 ${intents.map(i => `<option value="${i.id}">${i.display_name}</option>`).join('')}
                             </select>
                         </div>
                         <div class="stat-card" style="text-align: left;">
-                            <label style="display: block; margin-bottom: 8px; color: #00d4ff;">Focus Area</label>
+                            <label style="display: block; margin-bottom: 8px; color: #000080;">Focus Area</label>
                             <select id="monitoring-state" class="monitoring-select">
                                 <option value="All India">All India</option>
                                 <option value="Andhra Pradesh">Andhra Pradesh</option>
@@ -789,7 +818,7 @@ async function loadMonitoring() {
                             </select>
                         </div>
                         <div class="stat-card" style="text-align: left;">
-                            <label style="display: block; margin-bottom: 8px; color: #00d4ff;">Time Period</label>
+                            <label style="display: block; margin-bottom: 8px; color: #000080;">Time Period</label>
                             <select id="monitoring-period" class="monitoring-select">
                                 <option value="today">Today</option>
                                 <option value="last_7_days">Last 7 Days</option>
@@ -797,7 +826,7 @@ async function loadMonitoring() {
                             </select>
                         </div>
                         <div class="stat-card" style="text-align: left;">
-                            <label style="display: block; margin-bottom: 8px; color: #00d4ff;">Vigilance Level</label>
+                            <label style="display: block; margin-bottom: 8px; color: #000080;">Vigilance Level</label>
                             <select id="monitoring-vigilance" class="monitoring-select">
                                 ${vigilanceLevels.map(v => `<option value="${v.id}">${v.name}</option>`).join('')}
                             </select>
@@ -816,9 +845,9 @@ async function loadMonitoring() {
                 <div class="alert alert-warning">
                     <strong>ML Backend Required:</strong> The monitoring system requires the ML backend to be running.
                 </div>
-                <p style="margin-top: 15px; color: #aaa;">
+                <p style="margin-top: 15px; color: #6c757d;">
                     Start the ML backend with:<br>
-                    <code style="background: #333; padding: 5px 10px; border-radius: 5px; display: inline-block; margin-top: 10px;">
+                    <code style="background: #dee2e6; padding: 5px 10px; border-radius: 5px; display: inline-block; margin-top: 10px;">
                     cd ml_backend && python main.py
                     </code>
                 </p>
@@ -869,10 +898,10 @@ async function startMonitoring() {
             resultsDiv.innerHTML = `
                 <div class="alert alert-info">
                     <strong>Status:</strong> ${status.message}
-                    <div style="margin-top: 10px; background: #333; border-radius: 10px; overflow: hidden;">
-                        <div style="width: ${status.progress}%; height: 6px; background: linear-gradient(90deg, #00d4ff, #7b2ff7);"></div>
+                    <div style="margin-top: 10px; background: #dee2e6; border-radius: 10px; overflow: hidden;">
+                        <div style="width: ${status.progress}%; height: 6px; background: linear-gradient(90deg, #000080, #FF9933);"></div>
                     </div>
-                    <span style="font-size: 0.85rem; color: #888;">${status.progress}% complete</span>
+                    <span style="font-size: 0.85rem; color: #6c757d;">${status.progress}% complete</span>
                 </div>
             `;
 
@@ -902,8 +931,8 @@ function displayMonitoringResults(results) {
     results.focus_area = focusArea === 'All India' ? 'All India' : focusArea;
 
     window.lastMonitoringResults = results;
-    const riskColor = results.risk.risk_level === 'Low' ? '#00ff88' :
-        results.risk.risk_level === 'Medium' ? '#ffaa00' : '#ff4444';
+    const riskColor = results.risk.risk_level === 'Low' ? '#138808' :
+        results.risk.risk_level === 'Medium' ? '#FF9933' : '#DC3545';
 
     document.getElementById('monitoring-results').innerHTML = `
         <div class="stats-grid">
@@ -919,21 +948,21 @@ function displayMonitoringResults(results) {
                 <div class="stat-label">Records Analyzed</div>
             </div>
             <div class="stat-card">
-                <div class="stat-value" style="color: #ffaa00;">${results.flagged_for_review}</div>
+                <div class="stat-value" style="color: #FF9933;">${results.flagged_for_review}</div>
                 <div class="stat-label">Flagged for Review</div>
             </div>
             <div class="stat-card">
-                <div class="stat-value" style="color: #00ff88;">${results.cleared}</div>
+                <div class="stat-value" style="color: #138808;">${results.cleared}</div>
                 <div class="stat-label">Cleared</div>
             </div>
         </div>
 
-        <h3 style="margin: 20px 0 15px; color: #00d4ff;">📋 Monitoring Summary</h3>
+        <h3 style="margin: 20px 0 15px; color: #000080;">📋 Monitoring Summary</h3>
         <div class="alert alert-info">${results.summary}</div>
 
-        <h3 style="margin: 20px 0 15px; color: #ffaa00;">⚠️ Key Observations (${results.findings.length})</h3>
+        <h3 style="margin: 20px 0 15px; color: #FF9933;">⚠️ Key Observations (${results.findings.length})</h3>
         ${results.findings.slice(0, 5).map((f, i) => {
-        const severityColor = f.severity === 'High' ? '#ff4444' : f.severity === 'Medium' ? '#ffaa00' : '#00d4ff';
+        const severityColor = f.severity === 'High' ? '#DC3545' : f.severity === 'Medium' ? '#FF9933' : '#000080';
         const bgColor = f.severity === 'High' ? 'rgba(255,68,68,0.15)' : f.severity === 'Medium' ? 'rgba(255,170,0,0.15)' : 'rgba(0,212,255,0.15)';
         const location = f.location || f.state || 'National';
         return `
@@ -941,19 +970,19 @@ function displayMonitoringResults(results) {
                 <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
                     <strong style="flex: 1;">${f.title}</strong>
                     <div style="display: flex; gap: 8px; align-items: center;">
-                        <span style="background: rgba(100,100,255,0.3); color: #8888ff; padding: 2px 8px; border-radius: 10px; font-size: 0.7rem;">📍 ${location}</span>
+                        <span style="background: rgba(100,100,255,0.3); color: #6c757d8ff; padding: 2px 8px; border-radius: 10px; font-size: 0.7rem;">📍 ${location}</span>
                         <span style="background: ${severityColor}; color: #000; padding: 2px 10px; border-radius: 10px; font-size: 0.75rem; font-weight: bold;">${f.severity}</span>
                     </div>
                 </div>
-                <span style="color: #ccc;">${f.description}</span>
+                <span style="color: #4a4a6a;">${f.description}</span>
                 
                 <div style="margin-top: 10px;">
-                    <button onclick="toggleFindingDetails(${i})" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #fff; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">
+                    <button onclick="toggleFindingDetails(${i})" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: #1a1a2e; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem;">
                         ▼ Details
                     </button>
                     <div id="finding-details-${i}" style="display: none; margin-top: 10px; background: rgba(0,0,0,0.4); padding: 15px; border-radius: 6px; border-left: 3px solid ${severityColor};">
-                        <h4 style="color: #ffaa00; margin: 0 0 8px 0; font-size: 0.95rem;">📊 Impact Assessment - ${location}</h4>
-                        <p style="margin: 0; color: #ccc; font-size: 0.9rem;">${f.details || 'Pattern detected requiring investigation within the focus area.'}</p>
+                        <h4 style="color: #FF9933; margin: 0 0 8px 0; font-size: 0.95rem;">📊 Impact Assessment - ${location}</h4>
+                        <p style="margin: 0; color: #4a4a6a; font-size: 0.9rem;">${f.details || 'Pattern detected requiring investigation within the focus area.'}</p>
                     </div>
                 </div>
             </div>
@@ -961,14 +990,14 @@ function displayMonitoringResults(results) {
     }).join('')}
         
         ${results.findings.length > 5 ? `
-            <button id="show-more-findings-btn" onclick="toggleMoreFindings()" style="background: rgba(255,170,0,0.2); border: 1px solid #ffaa00; color: #ffaa00; padding: 10px 20px; border-radius: 6px; cursor: pointer; width: 100%; margin: 10px 0;">
+            <button id="show-more-findings-btn" onclick="toggleMoreFindings()" style="background: rgba(255,170,0,0.2); border: 1px solid #FF9933; color: #FF9933; padding: 10px 20px; border-radius: 6px; cursor: pointer; width: 100%; margin: 10px 0;">
                 ▼ Show ${results.findings.length - 5} More Findings
             </button>
             <div id="more-findings" style="display: none;">
                 ${results.findings.slice(5).map((f, i) => `
-                    <div class="alert" style="border-left: 4px solid ${f.severity === 'High' ? '#ff4444' : f.severity === 'Medium' ? '#ffaa00' : '#00d4ff'}; background: ${f.severity === 'High' ? 'rgba(255,68,68,0.15)' : f.severity === 'Medium' ? 'rgba(255,170,0,0.15)' : 'rgba(0,212,255,0.15)'}; margin-top: 10px;">
-                        <strong>${f.title}</strong> <span style="float: right; color: ${f.severity === 'High' ? '#ff4444' : f.severity === 'Medium' ? '#ffaa00' : '#00d4ff'}; font-weight: bold;">${f.severity}</span>
-                        <br><span style="color: #ccc;">${f.description}</span>
+                    <div class="alert" style="border-left: 4px solid ${f.severity === 'High' ? '#DC3545' : f.severity === 'Medium' ? '#FF9933' : '#000080'}; background: ${f.severity === 'High' ? 'rgba(255,68,68,0.15)' : f.severity === 'Medium' ? 'rgba(255,170,0,0.15)' : 'rgba(0,212,255,0.15)'}; margin-top: 10px;">
+                        <strong>${f.title}</strong> <span style="float: right; color: ${f.severity === 'High' ? '#DC3545' : f.severity === 'Medium' ? '#FF9933' : '#000080'}; font-weight: bold;">${f.severity}</span>
+                        <br><span style="color: #4a4a6a;">${f.description}</span>
                     </div>
                 `).join('')}
             </div>
@@ -978,14 +1007,14 @@ function displayMonitoringResults(results) {
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                 <div>
                     <h3 style="margin: 0; color: #a78bfa;">🤖 AI-Powered Analysis</h3>
-                    <p style="margin: 5px 0 0; color: #888; font-size: 0.8rem;">Model: <strong style="color: #8b5cf6;">llama-3.3-70b-versatile</strong> via Groq LPU</p>
+                    <p style="margin: 5px 0 0; color: #6c757d; font-size: 0.8rem;">Model: <strong style="color: #8b5cf6;">llama-3.3-70b-versatile</strong> via Groq LPU</p>
                 </div>
-                <button id="regenerate-ai-btn" onclick="regenerateAIAnalysis()" style="background: linear-gradient(135deg, #8b5cf6, #6366f1); border: none; color: #fff; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 8px; transition: all 0.3s;">
+                <button id="regenerate-ai-btn" onclick="regenerateAIAnalysis()" style="background: linear-gradient(135deg, #8b5cf6, #6366f1); border: none; color: #1a1a2e; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600; display: flex; align-items: center; gap: 8px; transition: all 0.3s;">
                     <span>✨</span> Generate AI Recommendations
                 </button>
             </div>
             <div id="ai-recommendations-container">
-                <p style="color: #888; text-align: center; padding: 20px;">Click the button above to generate unique AI-powered recommendations based on current findings.</p>
+                <p style="color: #6c757d; text-align: center; padding: 20px;">Click the button above to generate unique AI-powered recommendations based on current findings.</p>
             </div>
         </div>
 
@@ -1006,7 +1035,7 @@ async function regenerateAIAnalysis() {
     // Get current results
     const results = window.lastMonitoringResults;
     if (!results) {
-        container.innerHTML = '<p style="color: #ff4444; text-align: center;">No analysis results available. Run monitoring first.</p>';
+        container.innerHTML = '<p style="color: #DC3545; text-align: center;">No analysis results available. Run monitoring first.</p>';
         return;
     }
 
@@ -1046,13 +1075,13 @@ async function regenerateAIAnalysis() {
                 </div>
                 
                 ${data.summary ? `
-                    <div style="background: rgba(0,212,255,0.1); border-left: 3px solid #00d4ff; padding: 15px; border-radius: 6px; margin-bottom: 15px;">
-                        <h4 style="color: #00d4ff; margin: 0 0 8px;">📋 AI Summary</h4>
-                        <p style="color: #ccc; margin: 0; font-size: 0.9rem;">${data.summary}</p>
+                    <div style="background: rgba(0,212,255,0.1); border-left: 3px solid #000080; padding: 15px; border-radius: 6px; margin-bottom: 15px;">
+                        <h4 style="color: #000080; margin: 0 0 8px;">📋 AI Summary</h4>
+                        <p style="color: #4a4a6a; margin: 0; font-size: 0.9rem;">${data.summary}</p>
                     </div>
                 ` : ''}
                 
-                <h4 style="color: #00ff88; margin: 15px 0 10px;">✅ Recommended Actions (${data.recommended_actions?.length || 0})</h4>
+                <h4 style="color: #138808; margin: 15px 0 10px;">✅ Recommended Actions (${data.recommended_actions?.length || 0})</h4>
                 ${(data.recommended_actions || []).map((a, i) => {
                 const categoryColors = {
                     'Audit': { bg: 'rgba(255,99,71,0.2)', border: '#ff6347', accent: '#ff6347' },
@@ -1063,7 +1092,7 @@ async function regenerateAIAnalysis() {
                 };
                 const category = a.action_category || 'Policy';
                 const colors = categoryColors[category] || categoryColors['Policy'];
-                const priorityBg = a.priority === 'Urgent' ? '#ff4444' : a.priority === 'High' ? '#ffaa00' : '#00ff88';
+                const priorityBg = a.priority === 'Urgent' ? '#DC3545' : a.priority === 'High' ? '#FF9933' : '#138808';
                 return `
                     <div style="background: ${colors.bg}; border-left: 4px solid ${colors.border}; padding: 15px; margin-bottom: 12px; border-radius: 8px;">
                         <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
@@ -1075,7 +1104,7 @@ async function regenerateAIAnalysis() {
                                     <span style="background: ${colors.accent}; color: #000; padding: 2px 8px; border-radius: 8px; font-weight: 600;">
                                         ${category}
                                     </span>
-                                    ${a.target_region ? `<span style="background: rgba(100,100,255,0.3); color: #8888ff; padding: 2px 8px; border-radius: 8px;">📍 ${a.target_region}</span>` : ''}
+                                    ${a.target_region ? `<span style="background: rgba(100,100,255,0.3); color: #6c757d8ff; padding: 2px 8px; border-radius: 8px;">📍 ${a.target_region}</span>` : ''}
                                 </div>
                             </div>
                             <span style="background: ${priorityBg}; color: #000; padding: 3px 10px; border-radius: 10px; font-size: 0.7rem; font-weight: bold;">
@@ -1088,10 +1117,10 @@ async function regenerateAIAnalysis() {
             }).join('')}
             `;
         } else {
-            container.innerHTML = `<p style="color: #ff4444; text-align: center; padding: 20px;">❌ ${data.error || 'Failed to generate AI analysis'}</p>`;
+            container.innerHTML = `<p style="color: #DC3545; text-align: center; padding: 20px;">❌ ${data.error || 'Failed to generate AI analysis'}</p>`;
         }
     } catch (error) {
-        container.innerHTML = `<p style="color: #ff4444; text-align: center; padding: 20px;">❌ Error: ${error.message}</p>`;
+        container.innerHTML = `<p style="color: #DC3545; text-align: center; padding: 20px;">❌ Error: ${error.message}</p>`;
     } finally {
         btn.disabled = false;
         btn.innerHTML = '<span>✨</span> Generate AI Recommendations';
@@ -1103,17 +1132,27 @@ async function regenerateAIAnalysis() {
 // =====================================
 
 function showLoading() {
-    document.getElementById('results-section').classList.add('active');
+    const resultsSection = document.getElementById('results-section');
+    resultsSection.classList.add('active');
     document.getElementById('results-content').innerHTML = `
         <div class="loading">
             <div class="spinner"></div>
         </div>
     `;
+    // Scroll to results section
+    setTimeout(() => {
+        resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
 }
 
 function showContent(html) {
-    document.getElementById('results-section').classList.add('active');
+    const resultsSection = document.getElementById('results-section');
+    resultsSection.classList.add('active');
     document.getElementById('results-content').innerHTML = html;
+    // Scroll to results section
+    setTimeout(() => {
+        resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
 }
 
 function setTitle(title) {
@@ -1130,6 +1169,8 @@ function showError(message) {
 
 function clearResults() {
     document.getElementById('results-section').classList.remove('active');
+    // Scroll back to top
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
 function formatNumber(num) {
@@ -1150,7 +1191,7 @@ function showDataTable(dataType, records) {
     const headers = Object.keys(records[0]);
 
     showContent(`
-        <p style="margin-bottom: 15px; color: #aaa;">Showing ${records.length} records</p>
+        <p style="margin-bottom: 15px; color: #6c757d;">Showing ${records.length} records</p>
         <table class="data-table">
             <thead>
                 <tr>
@@ -1175,7 +1216,7 @@ function renderHotspotList(items, type) {
         <div class="alert ${type === 'coldspot' ? 'alert-critical' : 'alert-info'}">
             <strong>${item.region || item.state}</strong>
             ${item.zScore ? `<span style="float: right;">z-score: ${item.zScore.toFixed(2)}</span>` : ''}
-            <br><span style="color: #aaa; font-size: 0.85rem;">
+            <br><span style="color: #6c757d; font-size: 0.85rem;">
                 ${item.classification || (type === 'coldspot' ? 'Low coverage area' : 'High coverage area')}
             </span>
         </div>
@@ -1188,7 +1229,7 @@ function renderAlerts(alerts) {
     return alerts.slice(0, 10).map(alert => `
         <div class="alert ${alert.severity === 'critical' ? 'alert-critical' : alert.severity === 'high' ? 'alert-warning' : 'alert-info'}">
             <strong>${alert.region}</strong> - ${alert.severity?.toUpperCase() || 'ALERT'}
-            <br><span style="color: #aaa; font-size: 0.85rem;">
+            <br><span style="color: #6c757d; font-size: 0.85rem;">
                 Deviation: ${(alert.percentageDeviation || 0).toFixed(1)}% | ${alert.direction || 'unusual pattern'}
             </span>
         </div>
@@ -1211,7 +1252,7 @@ function renderTrends(regions) {
                 ${regions.slice(0, 15).map(r => `
                     <tr>
                         <td>${r.region}</td>
-                        <td style="color: ${r.trend === 'increasing' ? '#00ff88' : r.trend === 'decreasing' ? '#ff4444' : '#aaa'};">
+                        <td style="color: ${r.trend === 'increasing' ? '#138808' : r.trend === 'decreasing' ? '#DC3545' : '#6c757d'};">
                             ${r.trend === 'increasing' ? '📈' : r.trend === 'decreasing' ? '📉' : '➡️'} ${r.trend}
                         </td>
                         <td>${(r.monthlyChange || 0).toFixed(1)}%</td>
@@ -1269,11 +1310,11 @@ function renderFlaggedRecords(records) {
     const cols = headers.slice(0, 6);
 
     return `
-        <h3 style="margin: 20px 0 15px; color: #ff4444;">🚩 Details: Flagged Records (${records.length})</h3>
-        <p style="color: #aaa; margin-bottom: 15px; font-size: 0.9rem;">
+        <h3 style="margin: 20px 0 15px; color: #DC3545;">🚩 Details: Flagged Records (${records.length})</h3>
+        <p style="color: #6c757d; margin-bottom: 15px; font-size: 0.9rem;">
             The following records were flagged by the anomaly detection engine. Click "Details" to view full record.
         </p>
-        <div style="overflow-x: auto; background: #222; border-radius: 8px; padding: 10px;">
+        <div style="overflow-x: auto; background: #FFFFFFFFF; border-radius: 8px; padding: 10px;">
             <table class="data-table" style="font-size: 0.9rem;">
                 <thead>
                     <tr>
@@ -1286,11 +1327,11 @@ function renderFlaggedRecords(records) {
                 <tbody>
                     ${records.map((r, i) => `
                         <tr>
-                            <td><span style="color: #ff4444; font-weight: bold;">${r.risk_score}</span></td>
+                            <td><span style="color: #DC3545; font-weight: bold;">${r.risk_score}</span></td>
                             <td>${r.flagged_reason}</td>
                             ${cols.map(h => `<td>${r[h] || '-'}</td>`).join('')}
                             <td>
-                                <button onclick="showRecordDetails(${i})" style="background: #00d4ff; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; color: #000; font-weight: bold;">
+                                <button onclick="showRecordDetails(${i})" style="background: #000080; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; color: #000; font-weight: bold;">
                                     View
                                 </button>
                             </td>
@@ -1311,18 +1352,18 @@ function showRecordDetails(index) {
     const record = window.flaggedRecordsData[index];
     const html = `
         <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 1000; display: flex; align-items: center; justify-content: center;">
-            <div style="background: #1a1a1a; padding: 30px; border-radius: 10px; width: 90%; max-width: 600px; border: 1px solid #444; position: relative;">
-                <button onclick="this.closest('div').parentElement.remove()" style="position: absolute; top: 15px; right: 20px; background: none; border: none; color: #fff; font-size: 24px; cursor: pointer;">✕</button>
-                <h2 style="color: #ff4444; margin-bottom: 20px;">🚩 Record Details</h2>
+            <div style="background: #F5F5F5; padding: 30px; border-radius: 10px; width: 90%; max-width: 600px; border: 1px solid #dee2e6; position: relative;">
+                <button onclick="this.closest('div').parentElement.remove()" style="position: absolute; top: 15px; right: 20px; background: none; border: none; color: #1a1a2e; font-size: 24px; cursor: pointer;">✕</button>
+                <h2 style="color: #DC3545; margin-bottom: 20px;">🚩 Record Details</h2>
                 
-                <div style="background: #333; padding: 15px; border-radius: 6px; margin-bottom: 20px;">
+                <div style="background: #dee2e6; padding: 15px; border-radius: 6px; margin-bottom: 20px;">
                     <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                        <strong style="color: #aaa;">Risk Score:</strong>
-                        <span style="color: #ff4444; font-weight: bold;">${record.risk_score}</span>
+                        <strong style="color: #6c757d;">Risk Score:</strong>
+                        <span style="color: #DC3545; font-weight: bold;">${record.risk_score}</span>
                     </div>
                     <div style="display: flex; justify-content: space-between;">
-                        <strong style="color: #aaa;">Reason:</strong>
-                        <span style="color: #fff;">${record.flagged_reason}</span>
+                        <strong style="color: #6c757d;">Reason:</strong>
+                        <span style="color: #1a1a2e;">${record.flagged_reason}</span>
                     </div>
                 </div>
                 
@@ -1330,8 +1371,8 @@ function showRecordDetails(index) {
                     <table style="width: 100%; border-collapse: collapse;">
                         ${Object.entries(record).filter(([k]) => k !== 'flagged_reason' && k !== 'risk_score').map(([k, v]) => `
                             <tr>
-                                <td style="padding: 8px; border-bottom: 1px solid #333; color: #00d4ff;">${k}</td>
-                                <td style="padding: 8px; border-bottom: 1px solid #333; color: #fff;">${v}</td>
+                                <td style="padding: 8px; border-bottom: 1px solid #dee2e6; color: #000080;">${k}</td>
+                                <td style="padding: 8px; border-bottom: 1px solid #dee2e6; color: #1a1a2e;">${v}</td>
                             </tr>
                         `).join('')}
                     </table>
@@ -1354,8 +1395,8 @@ function showAnalysisEvidence() {
 
     const html = `
         <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 999; display: flex; align-items: center; justify-content: center;">
-            <div style="background: #151515; padding: 40px; border-radius: 12px; width: 95%; max-width: 1000px; max-height: 90vh; overflow-y: auto; border: 1px solid #333; position: relative; box-shadow: 0 0 50px rgba(0,0,0,0.5);">
-                <button onclick="this.closest('div').parentElement.remove()" style="position: absolute; top: 20px; right: 25px; background: none; border: none; color: #fff; font-size: 28px; cursor: pointer; opacity: 0.7;">✕</button>
+            <div style="background: #151515; padding: 40px; border-radius: 12px; width: 95%; max-width: 1000px; max-height: 90vh; overflow-y: auto; border: 1px solid #dee2e6; position: relative; box-shadow: 0 0 50px rgba(0,0,0,0.5);">
+                <button onclick="this.closest('div').parentElement.remove()" style="position: absolute; top: 20px; right: 25px; background: none; border: none; color: #1a1a2e; font-size: 28px; cursor: pointer; opacity: 0.7;">✕</button>
                 ${content}
             </div>
         </div>
@@ -1391,14 +1432,14 @@ function renderSimpleRecordTable(records) {
     return `
     <table style="width:100%; font-size: 0.8rem; border-collapse: collapse; margin-top: 5px;">
         <thead>
-            <tr style="border-bottom: 1px solid #444; color: #888;">
+            <tr style="border-bottom: 1px solid #dee2e6; color: #6c757d;">
                 ${headers.map(h => `<th style="text-align:left; padding:4px;">${h}</th>`).join('')}
             </tr>
         </thead>
         <tbody>
             ${records.map(r => `
                 <tr>
-                    ${headers.map(h => `<td style="padding:4px; color:#ccc;">${r[h]}</td>`).join('')}
+                    ${headers.map(h => `<td style="padding:4px; color:#4a4a6a;">${r[h]}</td>`).join('')}
                 </tr>
             `).join('')}
         </tbody>
@@ -1431,7 +1472,7 @@ async function loadGenderGapMap() {
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 20px 0;">
                 ${stateAnalysis.map(s => {
                     const gapPercent = s.genderGap * 100;
-                    const color = gapPercent > 5 ? '#ff4444' : gapPercent > 3 ? '#ff9900' : gapPercent > 1 ? '#ffcc00' : '#00ff88';
+                    const color = gapPercent > 5 ? '#DC3545' : gapPercent > 3 ? '#ff9900' : gapPercent > 1 ? '#ffcc00' : '#138808';
                     return `
                         <div onclick="showStateDetails('${s.state}')" 
                             style="background: linear-gradient(135deg, ${color}22 0%, ${color}44 100%);
@@ -1440,8 +1481,8 @@ async function loadGenderGapMap() {
                             onmouseout="this.style.transform='scale(1)'">
                             <div style="font-weight: bold; color: white;">${s.state}</div>
                             <div style="font-size: 1.5rem; color: ${color};">${(s.genderGap * 100).toFixed(1)}%</div>
-                            <div style="font-size: 0.8rem; color: #aaa;">Gender Gap</div>
-                            <div style="font-size: 0.7rem; color: #888; margin-top: 5px;">
+                            <div style="font-size: 0.8rem; color: #6c757d;">Gender Gap</div>
+                            <div style="font-size: 0.7rem; color: #6c757d; margin-top: 5px;">
                                 F: ${(s.femaleCoverageRatio * 100).toFixed(0)}% | M: ${(s.maleCoverageRatio * 100).toFixed(0)}%
                             </div>
                         </div>
@@ -1449,12 +1490,12 @@ async function loadGenderGapMap() {
                 }).join('')}
             </div>
 
-            <h3 style="margin: 25px 0 15px; color: #00d4ff;">📊 Legend</h3>
+            <h3 style="margin: 25px 0 15px; color: #000080;">📊 Legend</h3>
             <div style="display: flex; gap: 20px; flex-wrap: wrap;">
-                <span><span style="display: inline-block; width: 20px; height: 20px; background: #ff4444; border-radius: 5px;"></span> Critical (>5%)</span>
+                <span><span style="display: inline-block; width: 20px; height: 20px; background: #DC3545; border-radius: 5px;"></span> Critical (>5%)</span>
                 <span><span style="display: inline-block; width: 20px; height: 20px; background: #ff9900; border-radius: 5px;"></span> High (3-5%)</span>
                 <span><span style="display: inline-block; width: 20px; height: 20px; background: #ffcc00; border-radius: 5px;"></span> Moderate (1-3%)</span>
-                <span><span style="display: inline-block; width: 20px; height: 20px; background: #00ff88; border-radius: 5px;"></span> Low (<1%)</span>
+                <span><span style="display: inline-block; width: 20px; height: 20px; background: #138808; border-radius: 5px;"></span> Low (<1%)</span>
             </div>
         `);
 
@@ -1480,7 +1521,7 @@ async function showStateDetails(stateName) {
         }
 
         showContent(`
-            <button onclick="loadGenderGapMap()" style="margin-bottom: 20px; padding: 8px 16px; background: #333; border: 1px solid #555; border-radius: 5px; color: white; cursor: pointer;">
+            <button onclick="loadGenderGapMap()" style="margin-bottom: 20px; padding: 8px 16px; background: #dee2e6; border: 1px solid #555; border-radius: 5px; color: white; cursor: pointer;">
                 ← Back to Map
             </button>
 
@@ -1494,14 +1535,14 @@ async function showStateDetails(stateName) {
                     <div class="stat-label">Male Coverage</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-value" style="color: ${stateData.genderGap > 0.03 ? '#ff4444' : '#00ff88'};">
+                    <div class="stat-value" style="color: ${stateData.genderGap > 0.03 ? '#DC3545' : '#138808'};">
                         ${(stateData.genderGap * 100).toFixed(1)}%
                     </div>
                     <div class="stat-label">Gender Gap</div>
                 </div>
             </div>
 
-            <h3 style="margin: 25px 0 15px; color: #00d4ff;">District Analysis</h3>
+            <h3 style="margin: 25px 0 15px; color: #000080;">District Analysis</h3>
             <table class="data-table">
                 <thead>
                     <tr>
@@ -1517,7 +1558,7 @@ async function showStateDetails(stateName) {
                             <td>${d.district}</td>
                             <td>${(d.femaleCoverageRatio * 100).toFixed(1)}%</td>
                             <td>${(d.maleCoverageRatio * 100).toFixed(1)}%</td>
-                            <td style="color: ${d.genderGap > 0.03 ? '#ff4444' : '#00ff88'};">
+                            <td style="color: ${d.genderGap > 0.03 ? '#DC3545' : '#138808'};">
                                 ${(d.genderGap * 100).toFixed(1)}%
                             </td>
                         </tr>
@@ -1569,7 +1610,7 @@ async function loadVulnerableGroups() {
             </div>
 
             <div class="stat-card" style="margin: 20px 0; text-align: center;">
-                <div class="stat-value" style="font-size: 3rem; color: ${summary.avgInclusionScore > 70 ? '#00ff88' : summary.avgInclusionScore > 50 ? '#ffcc00' : '#ff4444'};">
+                <div class="stat-value" style="font-size: 3rem; color: ${summary.avgInclusionScore > 70 ? '#138808' : summary.avgInclusionScore > 50 ? '#ffcc00' : '#DC3545'};">
                     ${summary.avgInclusionScore.toFixed(0)}
                 </div>
                 <div class="stat-label">National Inclusion Score (out of 100)</div>
@@ -1578,7 +1619,7 @@ async function loadVulnerableGroups() {
             <!-- Charts Section -->
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: 25px 0;">
                 <div style="background: rgba(0,0,0,0.3); border-radius: 15px; padding: 20px;">
-                    <h3 style="margin: 0 0 15px; color: #00d4ff;">📊 Enrollment by Vulnerable Group</h3>
+                    <h3 style="margin: 0 0 15px; color: #000080;">📊 Enrollment by Vulnerable Group</h3>
                     <canvas id="vulnerableBarChart" height="200"></canvas>
                 </div>
                 <div style="background: rgba(0,0,0,0.3); border-radius: 15px; padding: 20px;">
@@ -1587,15 +1628,15 @@ async function loadVulnerableGroups() {
                 </div>
             </div>
 
-            <h3 style="margin: 25px 0 15px; color: #ff6666;">⚠️ High-Risk Districts by Group</h3>
+            <h3 style="margin: 25px 0 15px; color: #DC3545;">⚠️ High-Risk Districts by Group</h3>
             
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px;">
                 <div style="background: rgba(76,175,80,0.1); border: 1px solid #4CAF50; border-radius: 10px; padding: 15px;">
                     <h4 style="color: #4CAF50;">👦 Children (0-5) - At Risk</h4>
                     ${(highRiskByGroup?.children || []).slice(0, 5).map(d => `
-                        <div style="padding: 5px 0; border-bottom: 1px solid #333;">
+                        <div style="padding: 5px 0; border-bottom: 1px solid #dee2e6;">
                             ${d.district}, ${d.state}
-                            <span style="float: right; color: #ff4444;">${d.groups?.children?.coverageScore || 0}%</span>
+                            <span style="float: right; color: #DC3545;">${d.groups?.children?.coverageScore || 0}%</span>
                         </div>
                     `).join('') || '<p style="color: #666;">No high-risk districts</p>'}
                 </div>
@@ -1603,9 +1644,9 @@ async function loadVulnerableGroups() {
                 <div style="background: rgba(156,39,176,0.1); border: 1px solid #9C27B0; border-radius: 10px; padding: 15px;">
                     <h4 style="color: #9C27B0;">👵 Elderly (60+) - At Risk</h4>
                     ${(highRiskByGroup?.elderly || []).slice(0, 5).map(d => `
-                        <div style="padding: 5px 0; border-bottom: 1px solid #333;">
+                        <div style="padding: 5px 0; border-bottom: 1px solid #dee2e6;">
                             ${d.district}, ${d.state}
-                            <span style="float: right; color: #ff4444;">${d.groups?.elderly?.coverageScore || 0}%</span>
+                            <span style="float: right; color: #DC3545;">${d.groups?.elderly?.coverageScore || 0}%</span>
                         </div>
                     `).join('') || '<p style="color: #666;">No high-risk districts</p>'}
                 </div>
@@ -1613,15 +1654,15 @@ async function loadVulnerableGroups() {
                 <div style="background: rgba(255,152,0,0.1); border: 1px solid #FF9800; border-radius: 10px; padding: 15px;">
                     <h4 style="color: #FF9800;">👨‍🦽 Disabled - At Risk</h4>
                     ${(highRiskByGroup?.disabled || []).slice(0, 5).map(d => `
-                        <div style="padding: 5px 0; border-bottom: 1px solid #333;">
+                        <div style="padding: 5px 0; border-bottom: 1px solid #dee2e6;">
                             ${d.district}, ${d.state}
-                            <span style="float: right; color: #ff4444;">${d.groups?.disabled?.coverageScore || 0}%</span>
+                            <span style="float: right; color: #DC3545;">${d.groups?.disabled?.coverageScore || 0}%</span>
                         </div>
                     `).join('') || '<p style="color: #666;">No high-risk districts</p>'}
                 </div>
             </div>
 
-            <h3 style="margin: 25px 0 15px; color: #00d4ff;">📊 State-wise Inclusion Scores</h3>
+            <h3 style="margin: 25px 0 15px; color: #000080;">📊 State-wise Inclusion Scores</h3>
             <table class="data-table">
                 <thead>
                     <tr>
@@ -1643,8 +1684,8 @@ async function loadVulnerableGroups() {
                             <td style="font-weight: bold;">${s.overallInclusionScore}%</td>
                             <td>
                                 <span style="padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;
-                                    background: ${s.riskLevel === 'CRITICAL' ? '#ff0000' : s.riskLevel === 'HIGH' ? '#ff9900' : s.riskLevel === 'MODERATE' ? '#ffcc00' : '#00ff88'}; 
-                                    color: ${s.riskLevel === 'LOW' ? '#000' : '#fff'};">
+                                    background: ${s.riskLevel === 'CRITICAL' ? '#ff0000' : s.riskLevel === 'HIGH' ? '#ff9900' : s.riskLevel === 'MODERATE' ? '#ffcc00' : '#138808'}; 
+                                    color: ${s.riskLevel === 'LOW' ? '#000' : '#1a1a2e'};">
                                     ${s.riskLevel}
                                 </span>
                             </td>
@@ -1686,8 +1727,8 @@ async function loadVulnerableGroups() {
                     legend: { display: false }
                 },
                 scales: {
-                    x: { ticks: { color: '#aaa' }, grid: { color: '#333' } },
-                    y: { ticks: { color: '#aaa' }, grid: { color: '#333' } }
+                    x: { ticks: { color: '#6c757d' }, grid: { color: '#dee2e6' } },
+                    y: { ticks: { color: '#6c757d' }, grid: { color: '#dee2e6' } }
                 }
             }
         });
@@ -1718,15 +1759,15 @@ async function loadVulnerableGroups() {
                 plugins: {
                     legend: { 
                         position: 'bottom',
-                        labels: { color: '#fff', boxWidth: 12, padding: 10 } 
+                        labels: { color: '#1a1a2e', boxWidth: 12, padding: 10 } 
                     }
                 },
                 scales: {
                     r: {
-                        angleLines: { color: '#444' },
-                        grid: { color: '#333' },
-                        pointLabels: { color: '#aaa' },
-                        ticks: { color: '#aaa', backdropColor: 'transparent' },
+                        angleLines: { color: '#dee2e6' },
+                        grid: { color: '#dee2e6' },
+                        pointLabels: { color: '#6c757d' },
+                        ticks: { color: '#6c757d', backdropColor: 'transparent' },
                         suggestedMin: 0,
                         suggestedMax: 100
                     }
@@ -1748,12 +1789,12 @@ async function loadImpactSimulator() {
             Calculate projected enrollments and welfare benefits for different intervention strategies.
         </div>
 
-        <div style="background: rgba(0,212,255,0.1); border: 1px solid #00d4ff; border-radius: 10px; padding: 20px; margin: 20px 0;">
-            <h3 style="color: #00d4ff; margin-top: 0;">🎯 Configure Intervention</h3>
+        <div style="background: rgba(0,212,255,0.1); border: 1px solid #000080; border-radius: 10px; padding: 20px; margin: 20px 0;">
+            <h3 style="color: #000080; margin-top: 0;">🎯 Configure Intervention</h3>
             
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
                 <div>
-                    <label style="display: block; margin-bottom: 5px; color: #aaa;">Intervention Type</label>
+                    <label style="display: block; margin-bottom: 5px; color: #6c757d;">Intervention Type</label>
                     <select id="sim-intervention" style="width: 100%; padding: 10px; background: #1a1a2e; border: 1px solid #555; border-radius: 5px; color: white;">
                         <option value="CAMP">Women-Only Camps</option>
                         <option value="MOBILE_VAN">Mobile Enrollment Vans</option>
@@ -1762,17 +1803,17 @@ async function loadImpactSimulator() {
                     </select>
                 </div>
                 <div>
-                    <label style="display: block; margin-bottom: 5px; color: #aaa;">Quantity / Number</label>
+                    <label style="display: block; margin-bottom: 5px; color: #6c757d;">Quantity / Number</label>
                     <input type="number" id="sim-quantity" value="10" min="1" max="100" 
                         style="width: 100%; padding: 10px; background: #1a1a2e; border: 1px solid #555; border-radius: 5px; color: white;">
                 </div>
                 <div>
-                    <label style="display: block; margin-bottom: 5px; color: #aaa;">Days (for vans)</label>
+                    <label style="display: block; margin-bottom: 5px; color: #6c757d;">Days (for vans)</label>
                     <input type="number" id="sim-days" value="5" min="1" max="30" 
                         style="width: 100%; padding: 10px; background: #1a1a2e; border: 1px solid #555; border-radius: 5px; color: white;">
                 </div>
                 <div>
-                    <label style="display: block; margin-bottom: 5px; color: #aaa;">Target Group</label>
+                    <label style="display: block; margin-bottom: 5px; color: #6c757d;">Target Group</label>
                     <select id="sim-target" style="width: 100%; padding: 10px; background: #1a1a2e; border: 1px solid #555; border-radius: 5px; color: white;">
                         <option value="WOMEN">Women</option>
                         <option value="ELDERLY">Elderly</option>
@@ -1783,7 +1824,7 @@ async function loadImpactSimulator() {
             </div>
             
             <button onclick="runSimulation()" 
-                style="margin-top: 20px; padding: 12px 30px; background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%); 
+                style="margin-top: 20px; padding: 12px 30px; background: linear-gradient(135deg, #000080 0%, #0099cc 100%); 
                 border: none; border-radius: 8px; color: white; font-size: 1rem; cursor: pointer; width: 100%;">
                 🚀 Calculate Impact
             </button>
@@ -1797,15 +1838,15 @@ async function loadImpactSimulator() {
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 10px;">
             <button onclick="runPreset('camp5')" class="preset-btn" style="padding: 15px; background: #1a1a2e; border: 1px solid #555; border-radius: 8px; color: white; cursor: pointer; text-align: left;">
                 <strong>Small District</strong><br>
-                <span style="color: #aaa; font-size: 0.9rem;">5 camps, women focus</span>
+                <span style="color: #6c757d; font-size: 0.9rem;">5 camps, women focus</span>
             </button>
             <button onclick="runPreset('mixed')" class="preset-btn" style="padding: 15px; background: #1a1a2e; border: 1px solid #555; border-radius: 8px; color: white; cursor: pointer; text-align: left;">
                 <strong>Medium District</strong><br>
-                <span style="color: #aaa; font-size: 0.9rem;">10 camps + mobile vans</span>
+                <span style="color: #6c757d; font-size: 0.9rem;">10 camps + mobile vans</span>
             </button>
             <button onclick="runPreset('intensive')" class="preset-btn" style="padding: 15px; background: #1a1a2e; border: 1px solid #555; border-radius: 8px; color: white; cursor: pointer; text-align: left;">
                 <strong>Large District</strong><br>
-                <span style="color: #aaa; font-size: 0.9rem;">20 camps, intensive drive</span>
+                <span style="color: #6c757d; font-size: 0.9rem;">20 camps, intensive drive</span>
             </button>
         </div>
     `);
@@ -1837,14 +1878,14 @@ async function runSimulation() {
         const benefits = result.benefitsUnlocked;
 
         resultsDiv.innerHTML = `
-            <h3 style="margin: 20px 0 15px; color: #00ff88;">📊 Simulation Results</h3>
+            <h3 style="margin: 20px 0 15px; color: #138808;">📊 Simulation Results</h3>
             
             <div class="stats-grid">
-                <div class="stat-card" style="background: linear-gradient(135deg, #00d4ff 0%, #0099cc 100%);">
+                <div class="stat-card" style="background: linear-gradient(135deg, #000080 0%, #0099cc 100%);">
                     <div class="stat-value">${formatNumber(result.projections.totalReach)}</div>
                     <div class="stat-label">People Reached</div>
                 </div>
-                <div class="stat-card" style="background: linear-gradient(135deg, #00ff88 0%, #00cc6a 100%);">
+                <div class="stat-card" style="background: linear-gradient(135deg, #138808 0%, #00cc6a 100%);">
                     <div class="stat-value">${formatNumber(result.projections.projectedEnrollments)}</div>
                     <div class="stat-label">Projected Enrollments</div>
                 </div>
@@ -1860,7 +1901,7 @@ async function runSimulation() {
 
             <div class="stats-grid" style="margin-top: 15px;">
                 <div class="stat-card">
-                    <div class="stat-value" style="color: ${parseFloat(result.roi.value) > 100 ? '#00ff88' : '#ffcc00'};">
+                    <div class="stat-value" style="color: ${parseFloat(result.roi.value) > 100 ? '#138808' : '#ffcc00'};">
                         ${result.roi.value}
                     </div>
                     <div class="stat-label">Return on Investment</div>
@@ -1879,7 +1920,7 @@ async function runSimulation() {
                 <strong>💡 Recommendation:</strong> ${result.roi.recommendation}
             </div>
 
-            <h4 style="margin: 20px 0 10px; color: #00d4ff;">💰 Welfare Benefits Breakdown</h4>
+            <h4 style="margin: 20px 0 10px; color: #000080;">💰 Welfare Benefits Breakdown</h4>
             <table class="data-table">
                 <thead>
                     <tr>

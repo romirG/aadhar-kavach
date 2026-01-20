@@ -4,21 +4,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>UIDAI Analytics Dashboard</title>
+    <title>AadhaarKavach | UIDAI Analytics Platform</title>
     <link rel="stylesheet" href="styles.css">
     <!-- Chart.js for interactive graphs -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 
 <body>
+    <!-- Theme Toggle Button -->
+    <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="Toggle Dark/Light Mode">
+        <span class="theme-icon">☀️</span>
+    </button>
+
     <div class="container">
         <!-- Header -->
         <header class="header">
             <div class="logo">
-                <span class="logo-icon">🆔</span>
-                <h1>UIDAI Analytics Dashboard</h1>
+                <span class="logo-icon">🛡️</span>
+                <h1>AadhaarKavach</h1>
             </div>
-            <p class="subtitle">Aadhaar Data Intelligence Platform</p>
+            <p class="subtitle">UIDAI Analytics & Intelligence Platform</p>
         </header>
 
         <!-- Main Content -->
@@ -54,19 +59,17 @@
                     </div>
 
                     <!-- Gender Gap Map -->
-                    <div class="feature-card" onclick="loadFeature('map')" style="border: 2px solid #00d4ff;">
+                    <div class="feature-card" onclick="loadFeature('map')">
                         <div class="feature-icon">🗺️</div>
                         <h3>Gender Gap Map</h3>
                         <p>Interactive choropleth map of India</p>
-                        <span style="color: #00d4ff; font-size: 0.7rem;">NEW</span>
                     </div>
 
                     <!-- Vulnerable Groups -->
-                    <div class="feature-card" onclick="loadFeature('vulnerable')" style="border: 2px solid #ff9900;">
+                    <div class="feature-card" onclick="loadFeature('vulnerable')">
                         <div class="feature-icon">👵</div>
                         <h3>Vulnerable Groups</h3>
                         <p>Elderly, children, disabled inclusion</p>
-                        <span style="color: #ff9900; font-size: 0.7rem;">NEW</span>
                     </div>
 
                     <!-- Gender Tracker -->
@@ -77,11 +80,10 @@
                     </div>
 
                     <!-- Impact Simulator -->
-                    <div class="feature-card" onclick="loadFeature('simulator')" style="border: 2px solid #00ff88;">
+                    <div class="feature-card" onclick="loadFeature('simulator')">
                         <div class="feature-icon">💰</div>
                         <h3>Impact Simulator</h3>
                         <p>ROI calculator for interventions</p>
-                        <span style="color: #00ff88; font-size: 0.7rem;">NEW</span>
                     </div>
 
                     <!-- Risk Predictor -->
@@ -89,13 +91,6 @@
                         <div class="feature-icon">🔮</div>
                         <h3>Risk Predictor</h3>
                         <p>Biometric re-enrollment risk prediction</p>
-                    </div>
-
-                    <!-- Enrollment Forecast -->
-                    <div class="feature-card" onclick="loadFeature('forecast')">
-                        <div class="feature-icon">📅</div>
-                        <h3>Enrollment Forecast</h3>
-                        <p>Time-series enrollment predictions</p>
                     </div>
 
                     <!-- Operations Monitoring -->
@@ -143,7 +138,8 @@
 
         <!-- Footer -->
         <footer class="footer">
-            <p>UIDAI Data Hackathon 2026 | Built with ❤️ for Digital India</p>
+            <p>© 2025 AadhaarKavach – UIDAI Data Hackathon Submission</p>
+            <p>Inspired by Government of India Digital Initiatives | Designed for Digital India 🇮🇳</p>
         </footer>
     </div>
 
