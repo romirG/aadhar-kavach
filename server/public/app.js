@@ -433,45 +433,130 @@ async function loadForecast() {
     setTitle('📅 Enrollment Forecast - ARIMA Predictions');
 
     try {
-        // First get list of available districts
-        const districtsResponse = await fetch(`${API_BASE}/heer-forecast/districts?limit=500`);
-        const districtsData = await districtsResponse.json();
+        // Check if Python ML backend is available
+        let backendAvailable = false;
+        try {
+            const healthCheck = await fetch(`${API_BASE}/forecast/districts`);
+            backendAvailable = healthCheck.ok;
+        } catch (e) {
+            backendAvailable = false;
+        }
 
-        if (!districtsData.success) {
-            showError('Failed to load districts data');
+        if (!backendAvailable) {
+            showContent(`
+                <div class="alert alert-warning">
+                    <strong>⚠️ Python ML Backend Required</strong>
+                    <p>The ARIMA enrollment forecaster requires the Python FastAPI backend.</p>
+                    <p style="margin-top: 15px;">
+                        <strong>Start the backend:</strong><br>
+                        <code style="background: #333; padding: 5px 10px; border-radius: 5px; display: inline-block; margin-top: 5px;">
+                        cd ml_backend && python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+                        </code>
+                    </p>
+                    <p style="margin-top: 15px; color: #aaa; font-size: 0.9em;">
+                        This will enable full ARIMA forecasting with:<br>
+                        ✅ Automatic stationarity testing<br>
+                        ✅ Confidence intervals from statsmodels<br>
+                        ✅ Model training on real data.gov.in data<br>
+                        ✅ State-level aggregated forecasts
+                    </p>
+                </div>
+            `);
             return;
         }
 
+        // First get list of available districts
+        const districtsResponse = await fetch(`${API_BASE}/forecast/districts`);
+        const districtsData = await districtsResponse.json();
+
         const districts = districtsData.districts || [];
+        const trained = districts.length > 0;
         
         showContent(`
             <div class="alert alert-info" style="margin-bottom: 20px;">
                 <strong>🔮 ARIMA-Based Enrollment Forecasting</strong>
                 <p style="margin: 10px 0 0 0; font-size: 0.9em;">
-                    Time-series predictions using Moving Average with Trend analysis.
-                    Select a district to view 6-month enrollment forecasts with confidence intervals.
+                    Time-series predictions using statsmodels ARIMA with automatic stationarity testing.
+                    ${trained ? 
+                        `Select a district to view 6-month enrollment forecasts with confidence intervals.` :
+                        `Train models first to enable predictions.`
+                    }
                 </p>
             </div>
 
-            <div class="forecast-selector" style="margin-bottom: 20px;">
-                <label for="district-select" style="display: block; margin-bottom: 10px; font-weight: bold;">
-                    Select District (${districts.length} available):
-                </label>
-                <div style="display: flex; gap: 10px;">
-                    <select id="district-select" style="flex: 1; padding: 10px; border-radius: 4px; border: 1px solid #444; background: #222; color: #fff;">
-                        <option value="">-- Choose a district --</option>
-                        ${districts.map(d => `<option value="${d}">${d}</option>`).join('')}
-                    </select>
-                    <button onclick="runForecast()" class="btn-primary" style="padding: 10px 20px;">
-                        Generate Forecast
+            ${!trained ? `
+                <div class="alert alert-warning" style="margin-bottom: 20px;">
+                    <strong>⚠️ No Trained Models Found</strong>
+                    <p style="margin: 10px 0;">Train ARIMA models on data.gov.in enrollment data first.</p>
+                    <button onclick="trainForecastModels()" class="btn-primary" style="margin-top: 10px;">
+                        🎯 Train Models (500 records, top 30 districts)
                     </button>
                 </div>
-            </div>
+            ` : ''}
+
+            ${trained ? `
+                <div class="forecast-selector" style="margin-bottom: 20px;">
+                    <label for="district-select" style="display: block; margin-bottom: 10px; font-weight: bold;">
+                        Select District (${districts.length} available):
+                    </label>
+                    <div style="display: flex; gap: 10px;">
+                        <select id="district-select" style="flex: 1; padding: 10px; border-radius: 4px; border: 1px solid #444; background: #222; color: #fff;">
+                            <option value="">-- Choose a district --</option>
+                            ${districts.map(d => `<option value="${d}">${d}</option>`).join('')}
+                        </select>
+                        <button onclick="runForecast()" class="btn-primary" style="padding: 10px 20px;">
+                            Generate Forecast
+                        </button>
+                        <button onclick="trainForecastModels()" class="btn-secondary" style="padding: 10px 20px;">
+                            🔄 Re-train
+                        </button>
+                    </div>
+                </div>
+            ` : ''}
 
             <div id="forecast-results"></div>
         `);
     } catch (error) {
         showError(`Failed to load forecast: ${error.message}`);
+    }
+}
+
+async function trainForecastModels() {
+    const resultsDiv = document.getElementById('forecast-results') || document.body;
+    resultsDiv.innerHTML = '<div class="loading">🎯 Training ARIMA models on data.gov.in data...<br><small>This may take 30-60 seconds</small></div>';
+
+    try {
+        const response = await fetch(`${API_BASE}/forecast/train?limit=500&max_districts=30`, {
+            method: 'POST'
+        });
+        const data = await response.json();
+
+        if (data.status === 'success') {
+            resultsDiv.innerHTML = `
+                <div class="alert alert-success">
+                    <strong>✅ Training Complete!</strong>
+                    <p>Successfully trained ${data.trained_count} district models.</p>
+                    <p><small>Model saved to: ${data.model_path}</small></p>
+                    <button onclick="loadForecast()" class="btn-primary" style="margin-top: 10px;">
+                        View Forecasts
+                    </button>
+                </div>
+            `;
+        } else {
+            resultsDiv.innerHTML = `
+                <div class="alert alert-error">
+                    <strong>❌ Training Failed</strong>
+                    <p>${data.detail || 'Unknown error during training'}</p>
+                </div>
+            `;
+        }
+    } catch (error) {
+        resultsDiv.innerHTML = `
+            <div class="alert alert-error">
+                <strong>❌ Training Error</strong>
+                <p>${error.message}</p>
+            </div>
+        `;
     }
 }
 
@@ -485,24 +570,24 @@ async function runForecast() {
     }
 
     const resultsDiv = document.getElementById('forecast-results');
-    resultsDiv.innerHTML = '<div class="loading">⏳ Generating forecast...</div>';
+    resultsDiv.innerHTML = '<div class="loading">⏳ Generating ARIMA forecast...</div>';
 
     try {
-        const response = await fetch(`${API_BASE}/heer-forecast/predict/${encodeURIComponent(district)}?periods=6`);
+        const response = await fetch(`${API_BASE}/forecast/predict/${encodeURIComponent(district)}?periods=6&confidence=0.95`);
         const data = await response.json();
 
-        if (!data.success) {
-            resultsDiv.innerHTML = `<div class="alert alert-error">${data.error || 'Failed to generate forecast'}</div>`;
+        if (data.detail) {
+            resultsDiv.innerHTML = `<div class="alert alert-error">${data.detail}</div>`;
             return;
         }
 
-        const { forecasts, historical_stats, model_type, confidence_level } = data;
+        const { forecasts, historical_stats, confidence_level } = data;
 
         // Prepare chart data
-        const labels = forecasts.map(f => f.date);
-        const predicted = forecasts.map(f => f.predicted_enrollment);
-        const lowerBound = forecasts.map(f => f.lower_bound);
-        const upperBound = forecasts.map(f => f.upper_bound);
+        const labels = forecasts.map((f, i) => `Month ${i + 1}`);
+        const predicted = forecasts.map(f => f.predicted);
+        const lowerBound = forecasts.map(f => f.ci_lower);
+        const upperBound = forecasts.map(f => f.ci_upper);
 
         resultsDiv.innerHTML = `
             <div class="stats-grid" style="margin-bottom: 20px;">
@@ -511,19 +596,20 @@ async function runForecast() {
                     <div class="stat-label">Historical Data Points</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-value">${formatNumber(historical_stats.mean)}</div>
+                    <div class="stat-value">${formatNumber(Math.round(historical_stats.mean))}</div>
                     <div class="stat-label">Average Enrollment</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-value">${formatNumber(historical_stats.max)}</div>
+                    <div class="stat-value">${formatNumber(Math.round(historical_stats.max))}</div>
                     <div class="stat-label">Peak Enrollment</div>
                 </div>
             </div>
 
             <div style="background: #1a1a1a; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
                 <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
-                    <span><strong>Model:</strong> ${model_type}</span>
+                    <span><strong>Model:</strong> ARIMA${JSON.stringify(historical_stats.order)}</span>
                     <span><strong>Confidence:</strong> ${(confidence_level * 100).toFixed(0)}%</span>
+                    <span><strong>AIC:</strong> ${historical_stats.aic?.toFixed(2)}</span>
                 </div>
                 <div><strong>Last Date:</strong> ${historical_stats.last_date}</div>
             </div>
@@ -537,20 +623,18 @@ async function runForecast() {
                     <thead>
                         <tr>
                             <th>Period</th>
-                            <th>Date</th>
                             <th>Predicted</th>
-                            <th>Lower Bound</th>
-                            <th>Upper Bound</th>
+                            <th>Lower Bound (95%)</th>
+                            <th>Upper Bound (95%)</th>
                         </tr>
                     </thead>
                     <tbody>
-                        ${forecasts.map(f => `
+                        ${forecasts.map((f, i) => `
                             <tr>
-                                <td>${f.period}</td>
-                                <td>${f.date}</td>
-                                <td><strong>${formatNumber(f.predicted_enrollment)}</strong></td>
-                                <td>${formatNumber(f.lower_bound)}</td>
-                                <td>${formatNumber(f.upper_bound)}</td>
+                                <td>Month ${i + 1}</td>
+                                <td><strong>${formatNumber(Math.round(f.predicted))}</strong></td>
+                                <td>${formatNumber(Math.round(f.ci_lower))}</td>
+                                <td>${formatNumber(Math.round(f.ci_upper))}</td>
                             </tr>
                         `).join('')}
                     </tbody>

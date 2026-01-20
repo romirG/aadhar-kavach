@@ -116,6 +116,17 @@ except ImportError as e:
     app.include_router(analysis.router, prefix="/api", tags=["Analysis"])
     app.include_router(visualizations.router, prefix="/api", tags=["Visualizations"])
 
+# Enrollment Forecast Router (Heer's ARIMA-based forecasting)
+try:
+    from enrollment_forecast.api import router as forecast_router
+    app.include_router(forecast_router, tags=["Enrollment Forecasting"])
+    logger.info("✅ Enrollment Forecast router loaded")
+except Exception as e:
+    import traceback
+    with open("enrollment_forecast_import_error.txt", "w") as f:
+        traceback.print_exc(file=f)
+    logger.warning(f"⚠️ Could not load enrollment forecast router: {e}")
+
 # Biometric Re-enrollment Risk Predictor Router (from separate feature module)
 try:
     import importlib.util
@@ -158,7 +169,10 @@ async def root():
             "train_model": "/api/train-model",
             "risk_summary": "/api/risk-summary",
             "visualizations": "/api/visualizations",
-            "explain_model": "/api/explain-model"
+            "explain_model": "/api/explain-model",
+            "forecast_districts": "/api/forecast/districts",
+            "forecast_train": "/api/forecast/train",
+            "forecast_predict": "/api/forecast/predict/{district}"
         }
     }
 
