@@ -252,55 +252,107 @@ async function loadAnomalies() {
 
 async function loadGenderTracker() {
     setTitle('👥 Gender Inclusion Tracker');
+    showLoading();
 
     try {
-        const enrolment = await fetch(`${API_BASE}/enrolment?limit=200`).then(r => r.json());
-        const records = enrolment.records || [];
+        // Fetch gender analysis data from ridwan API
+        const response = await fetch(`${API_BASE}/ridwan-gender/high-risk?limit=500`);
+        const data = await response.json();
 
-        // Calculate gender stats by state (simulated since real data may not have gender)
-        const stateStats = {};
-        records.forEach(r => {
-            if (!stateStats[r.state]) {
-                stateStats[r.state] = { total: 0, records: 0 };
-            }
-            stateStats[r.state].total += (parseInt(r.age_18_greater) || 0);
-            stateStats[r.state].records++;
-        });
+        if (!data.success) {
+            throw new Error(data.error || 'Failed to fetch gender data');
+        }
 
-        const stateList = Object.entries(stateStats)
-            .map(([state, data]) => ({ state, ...data }))
-            .sort((a, b) => b.total - a.total)
-            .slice(0, 15);
+        const { riskDistribution, districts } = data.data;
+        const totalHighRisk = data.data.totalHighRisk || 0;
+
+        // Fetch state-level coverage
+        const coverageResponse = await fetch(`${API_BASE}/ridwan-gender/coverage?limit=500`);
+        const coverageData = await coverageResponse.json();
+        
+        const stateAnalysis = coverageData.data?.stateAnalysis || [];
+        const summary = coverageData.data?.summary || {};
 
         showContent(`
             <div class="alert alert-info">
-                <strong>Gender Inclusion Analysis:</strong> 
-                Monitoring female Aadhaar enrollment coverage across districts.
+                <strong>🎯 Gender Inclusion Analysis:</strong> 
+                Monitoring female Aadhaar enrollment coverage to identify and address the digital gender gap.
             </div>
-            
-            <h3 style="margin: 20px 0 15px;">📊 State-wise Enrollment Summary</h3>
+
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-value">${summary.totalStates || 0}</div>
+                    <div class="stat-label">States Analyzed</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${summary.totalDistricts || 0}</div>
+                    <div class="stat-label">Districts Analyzed</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value" style="color: #ff4444;">${totalHighRisk}</div>
+                    <div class="stat-label">High-Risk Districts</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${((summary.avgGenderGap || 0) * 100).toFixed(1)}%</div>
+                    <div class="stat-label">Avg Gender Gap</div>
+                </div>
+            </div>
+
+            <h3 style="margin: 25px 0 15px; color: #ff6666;">⚠️ High-Risk Districts (Gender Gap > 3%)</h3>
             <table class="data-table">
                 <thead>
                     <tr>
+                        <th>District</th>
                         <th>State</th>
-                        <th>Adult Enrollments (18+)</th>
-                        <th>Records</th>
+                        <th>Gender Gap</th>
+                        <th>Female %</th>
+                        <th>Male %</th>
+                        <th>Risk</th>
                     </tr>
                 </thead>
                 <tbody>
-                    ${stateList.map(s => `
+                    ${districts.slice(0, 15).map(d => `
                         <tr>
-                            <td>${s.state}</td>
-                            <td>${formatNumber(s.total)}</td>
-                            <td>${s.records}</td>
+                            <td>${d.district}</td>
+                            <td>${d.state}</td>
+                            <td style="color: #ff4444; font-weight: bold;">${(d.genderGap * 100).toFixed(1)}%</td>
+                            <td>${(d.femaleCoverageRatio * 100).toFixed(1)}%</td>
+                            <td>${(d.maleCoverageRatio * 100).toFixed(1)}%</td>
+                            <td>
+                                <span style="padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;
+                                    background: ${d.riskLevel === 'CRITICAL' ? '#ff0000' : d.riskLevel === 'HIGH' ? '#ff9900' : '#ffcc00'}; 
+                                    color: #fff;">
+                                    ${d.riskLevel}
+                                </span>
+                            </td>
                         </tr>
                     `).join('')}
                 </tbody>
             </table>
-            
-            <div class="alert alert-warning" style="margin-top: 20px;">
-                <strong>Note:</strong> Full gender disaggregated data requires ML backend connection.
-            </div>
+
+            <h3 style="margin: 25px 0 15px; color: #00d4ff;">📊 State-wise Gender Coverage</h3>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>State</th>
+                        <th>Female Coverage</th>
+                        <th>Male Coverage</th>
+                        <th>Gender Gap</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${stateAnalysis.slice(0, 10).map(s => `
+                        <tr>
+                            <td>${s.state}</td>
+                            <td>${(s.femaleCoverageRatio * 100).toFixed(1)}%</td>
+                            <td>${(s.maleCoverageRatio * 100).toFixed(1)}%</td>
+                            <td style="color: ${s.genderGap > 0.03 ? '#ff4444' : '#00ff88'};">
+                                ${(s.genderGap * 100).toFixed(1)}%
+                            </td>
+                        </tr>
+                    `).join('')}
+                </tbody>
+            </table>
         `);
     } catch (error) {
         showError(`Failed to load gender data: ${error.message}`);
