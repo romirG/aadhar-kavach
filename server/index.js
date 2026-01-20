@@ -71,6 +71,38 @@ app.use('/api/ridwan-simulate', ridwanSimulateRoutes);
 // Heer enrollment forecaster routes
 app.use('/api/heer-forecast', heerForecastRoutes);
 
+// Enrollment Forecast API Proxy - Forward to ML backend Python ARIMA models
+app.use('/api/forecast', async (req, res) => {
+  try {
+    const targetUrl = `${ML_BACKEND_URL}/api/forecast${req.url}`;
+    console.log(`📈 Forecast API: ${req.method} ${targetUrl}`);
+
+    const response = await axios({
+      method: req.method,
+      url: targetUrl,
+      data: req.body,
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      timeout: 120000
+    });
+
+    res.status(response.status).json(response.data);
+  } catch (error) {
+    if (error.response) {
+      res.status(error.response.status).json(error.response.data);
+    } else if (error.code === 'ECONNREFUSED') {
+      res.status(503).json({
+        error: 'ML Backend Unavailable',
+        message: 'The Python ML backend is not running. Start with: cd ml_backend && python -m uvicorn main:app --host 0.0.0.0 --port 8000 --reload'
+      });
+    } else {
+      console.error('Forecast Proxy Error:', error.message);
+      res.status(500).json({ error: 'Forecast proxy error', message: error.message });
+    }
+  }
+});
+
 // Serve geospatial feature on /geospatial path
 app.get('/geospatial', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'geospatial.html'));
