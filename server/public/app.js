@@ -46,8 +46,8 @@ document.addEventListener('DOMContentLoaded', initTheme);
 // =====================================
 
 async function checkStatus() {
-    // Check backend status - use /health for ML backend (not /api/health)
-    const healthUrl = isProduction ? `${RENDER_EXPRESS_URL}/health` : `${API_BASE}/health`;
+    // Check Express backend status - Express has /api/health
+    const healthUrl = `${API_BASE}/health`;
     try {
         const response = await fetch(healthUrl);
         if (response.ok) {
@@ -61,8 +61,8 @@ async function checkStatus() {
         document.getElementById('backend-status').textContent = 'Offline';
     }
 
-    // Check ML backend status
-    const mlHealthUrl = isProduction ? `${RENDER_EXPRESS_URL}/health` : `${ML_API_BASE}/health`;
+    // Check ML backend status via Express proxy
+    const mlHealthUrl = `${API_BASE}/ml-health`;
     try {
         const response = await fetch(mlHealthUrl);
         if (response.ok) {

@@ -195,6 +195,20 @@ app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
+// ML Backend health check proxy
+app.get('/api/ml-health', async (req, res) => {
+  try {
+    const response = await axios.get(`${ML_BACKEND_URL}/health`, { timeout: 10000 });
+    res.json(response.data);
+  } catch (error) {
+    res.status(503).json({
+      status: 'offline',
+      error: 'ML Backend unavailable',
+      ml_url: ML_BACKEND_URL
+    });
+  }
+});
+
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error('Error:', err.message);
