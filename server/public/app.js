@@ -2,8 +2,15 @@
  * UIDAI Analytics Dashboard - Frontend JavaScript
  */
 
-const API_BASE = 'http://localhost:3001/api';
-const ML_API_BASE = 'http://localhost:8000';
+// Detect environment and set API URLs accordingly
+const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
+
+// Backend URL - Your deployed Render backend
+const RENDER_EXPRESS_URL = 'https://aadhar-kavach.onrender.com';
+
+const API_BASE = isProduction ? `${RENDER_EXPRESS_URL}/api` : '/api';
+// ML API - for direct calls (Express server proxies most ML calls through /api/ml)
+const ML_API_BASE = isProduction ? RENDER_EXPRESS_URL : 'http://localhost:8000';
 
 // =====================================
 // Theme Toggle
@@ -18,7 +25,7 @@ function initTheme() {
 function toggleTheme() {
     const currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
     const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-    
+
     document.documentElement.setAttribute('data-theme', newTheme);
     localStorage.setItem('theme', newTheme);
     updateThemeIcon(newTheme);
@@ -298,7 +305,7 @@ async function loadGenderTracker() {
         // Fetch state-level coverage
         const coverageResponse = await fetch(`${API_BASE}/ridwan-gender/coverage?limit=500`);
         const coverageData = await coverageResponse.json();
-        
+
         const stateAnalysis = coverageData.data?.stateAnalysis || [];
         const summary = coverageData.data?.summary || {};
 
@@ -500,16 +507,16 @@ async function loadForecast() {
 
         const districts = districtsData.districts || [];
         const trained = districts.length > 0;
-        
+
         showContent(`
             <div class="alert alert-info" style="margin-bottom: 20px;">
                 <strong>🔮 ARIMA-Based Enrollment Forecasting</strong>
                 <p style="margin: 10px 0 0 0; font-size: 0.9em;">
                     Time-series predictions using statsmodels ARIMA with automatic stationarity testing.
-                    ${trained ? 
-                        `Select a district to view 6-month enrollment forecasts with confidence intervals.` :
-                        `Train models first to enable predictions.`
-                    }
+                    ${trained ?
+                `Select a district to view 6-month enrollment forecasts with confidence intervals.` :
+                `Train models first to enable predictions.`
+            }
                 </p>
             </div>
 
@@ -592,7 +599,7 @@ async function trainForecastModels() {
 async function runForecast() {
     const select = document.getElementById('district-select');
     const district = select.value;
-    
+
     if (!district) {
         alert('Please select a district');
         return;
@@ -724,7 +731,7 @@ async function runForecast() {
                     },
                     tooltip: {
                         callbacks: {
-                            label: function(context) {
+                            label: function (context) {
                                 return context.dataset.label + ': ' + formatNumber(context.parsed.y);
                             }
                         }
@@ -736,9 +743,9 @@ async function runForecast() {
                         grid: { color: '#dee2e6' }
                     },
                     y: {
-                        ticks: { 
+                        ticks: {
                             color: '#6c757d',
-                            callback: function(value) {
+                            callback: function (value) {
                                 return formatNumber(value);
                             }
                         },
@@ -1471,9 +1478,9 @@ async function loadGenderGapMap() {
 
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 20px 0;">
                 ${stateAnalysis.map(s => {
-                    const gapPercent = s.genderGap * 100;
-                    const color = gapPercent > 5 ? '#DC3545' : gapPercent > 3 ? '#ff9900' : gapPercent > 1 ? '#ffcc00' : '#138808';
-                    return `
+            const gapPercent = s.genderGap * 100;
+            const color = gapPercent > 5 ? '#DC3545' : gapPercent > 3 ? '#ff9900' : gapPercent > 1 ? '#ffcc00' : '#138808';
+            return `
                         <div onclick="showStateDetails('${s.state}')" 
                             style="background: linear-gradient(135deg, ${color}22 0%, ${color}44 100%);
                             border: 2px solid ${color}; border-radius: 10px; padding: 15px; cursor: pointer;
@@ -1487,7 +1494,7 @@ async function loadGenderGapMap() {
                             </div>
                         </div>
                     `;
-                }).join('')}
+        }).join('')}
             </div>
 
             <h3 style="margin: 25px 0 15px; color: #000080;">📊 Legend</h3>
@@ -1511,7 +1518,7 @@ async function showStateDetails(stateName) {
     try {
         const response = await fetch(`${API_BASE}/ridwan-gender/coverage?limit=500`);
         const data = await response.json();
-        
+
         const stateData = data.data?.stateAnalysis?.find(s => s.state === stateName);
         const districts = data.data?.districtAnalysis?.filter(d => d.state === stateName) || [];
 
@@ -1757,9 +1764,9 @@ async function loadVulnerableGroups() {
             options: {
                 responsive: true,
                 plugins: {
-                    legend: { 
+                    legend: {
                         position: 'bottom',
-                        labels: { color: '#1a1a2e', boxWidth: 12, padding: 10 } 
+                        labels: { color: '#1a1a2e', boxWidth: 12, padding: 10 }
                     }
                 },
                 scales: {
