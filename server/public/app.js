@@ -46,21 +46,25 @@ document.addEventListener('DOMContentLoaded', initTheme);
 // =====================================
 
 async function checkStatus() {
-    // Check backend status
+    // Check backend status - use /health for ML backend (not /api/health)
+    const healthUrl = isProduction ? `${RENDER_EXPRESS_URL}/health` : `${API_BASE}/health`;
     try {
-        const response = await fetch(`${API_BASE}/health`);
+        const response = await fetch(healthUrl);
         if (response.ok) {
             document.getElementById('backend-status').textContent = 'Online';
             document.querySelector('.status-item:first-child .status-dot').classList.add('online');
             document.querySelector('.status-item:first-child .status-dot').classList.remove('offline');
+        } else {
+            document.getElementById('backend-status').textContent = 'Offline';
         }
     } catch (e) {
         document.getElementById('backend-status').textContent = 'Offline';
     }
 
     // Check ML backend status
+    const mlHealthUrl = isProduction ? `${RENDER_EXPRESS_URL}/health` : `${ML_API_BASE}/health`;
     try {
-        const response = await fetch(`${ML_API_BASE}/health`);
+        const response = await fetch(mlHealthUrl);
         if (response.ok) {
             document.getElementById('ml-status').textContent = 'Online';
             document.querySelector('.status-item:last-child .status-dot').classList.add('online');
