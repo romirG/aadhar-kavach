@@ -18,6 +18,8 @@ import biometricRoutes from './routes/biometric.js';
 import dashboardRoutes from './routes/dashboard.js';
 import aiRoutes from './routes/ai.js';
 import hotspotsRoutes from './routes/hotspots.js';
+import geoPenetrationRoutes from './routes/geo-penetration.js';
+import geoDataRoutes from './routes/geo-data.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -45,6 +47,20 @@ app.use('/api/biometric', biometricRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/hotspots', hotspotsRoutes);
+
+// Test route to verify server is working
+app.get('/api/test', (req, res) => {
+    console.log('✅ Test route hit!');
+    res.json({ status: 'ok', message: 'Server is responding' });
+});
+
+app.use('/api/geo-penetration', geoPenetrationRoutes);
+app.use('/api/geo-data', geoDataRoutes);
+
+// Serve geospatial feature on /geospatial path
+app.get('/geospatial', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'geospatial.html'));
+});
 
 // Monitoring API Proxy - Forward to ML backend /api/monitor endpoints
 app.use('/api/monitor', async (req, res) => {

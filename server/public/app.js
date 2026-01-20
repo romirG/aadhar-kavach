@@ -50,6 +50,10 @@ async function loadFeature(feature) {
             case 'hotspots':
                 await loadHotspots();
                 break;
+            case 'geospatial':
+                // Open geospatial feature in same tab
+                window.location.href = '/geospatial';
+                break;
             case 'anomalies':
                 await loadAnomalies();
                 break;
