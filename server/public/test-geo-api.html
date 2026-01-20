@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Geospatial API</title>
+</head>
+<body>
+    <h1>Geospatial API Test</h1>
+    <button onclick="testAPI()">Test API</button>
+    <pre id="output"></pre>
+
+    <script>
+        async function testAPI() {
+            const output = document.getElementById('output');
+            output.textContent = 'Loading...';
+            
+            try {
+                console.log('Fetching from /api/geo-penetration/state...');
+                const response = await fetch('/api/geo-penetration/state');
+                console.log('Response status:', response.status);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
+                const data = await response.json();
+                console.log('Data received:', data);
+                
+                output.textContent = JSON.stringify(data.slice(0, 5), null, 2);
+            } catch (error) {
+                console.error('Error:', error);
+                output.textContent = 'Error: ' + error.message;
+            }
+        }
+        
+        // Auto-test on load
+        window.onload = () => testAPI();
+    </script>
+</body>
+</html>
