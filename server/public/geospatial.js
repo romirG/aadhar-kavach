@@ -318,7 +318,7 @@ function getEEIColor(eei) {
 
     if (eei > 1.2) return '#22c55e'; // Green
     if (eei >= 0.8) return '#eab308'; // Yellow
-    return '#ef4444'; // Red
+    return '#DC3545'; // Red
 }
 
 /**
@@ -347,7 +347,7 @@ function bindFeatureEventsFromMap(feature, layer) {
             interpColor = '#eab308';
         } else {
             interpretation = 'Under-performing';
-            interpColor = '#ef4444';
+            interpColor = '#DC3545';
         }
     }
 
@@ -425,7 +425,7 @@ function getPenetrationColorScale(penetration) {
 
     // Apply color scale based on actual percentages
     if (value < 70) {
-        return '#ef4444'; // Red (low penetration < 70%)
+        return '#DC3545'; // Red (low penetration < 70%)
     } else if (value < 90) {
         return '#eab308'; // Yellow (medium 70-90%)
     } else {
@@ -640,7 +640,7 @@ function addLegend() {
                 <span>0.8 - 1.2 (On track)</span>
             </div>
             <div class="legend-item">
-                <span class="legend-color" style="background: #ef4444;"></span>
+                <span class="legend-color" style="background: #DC3545;"></span>
                 <span>&lt; 0.8 (Under-performing)</span>
             </div>
             <div class="legend-item">
@@ -924,10 +924,10 @@ function showNotification(message, type = 'info') {
         padding: '1rem 1.5rem',
         borderRadius: '12px',
         background: type === 'success'
-            ? 'linear-gradient(135deg, #10B981 0%, #34D399 100%)'
+            ? 'linear-gradient(135deg, #138808 0%, #34D399 100%)'
             : type === 'info'
-                ? 'linear-gradient(135deg, #3B82F6 0%, #2DD4BF 100%)'
-                : 'linear-gradient(135deg, #F59E0B 0%, #FBBF24 100%)',
+                ? 'linear-gradient(135deg, #000080 0%, #138808 100%)'
+                : 'linear-gradient(135deg, #FF9933 0%, #FBBF24 100%)',
         color: 'white',
         fontWeight: '600',
         fontSize: '0.875rem',
