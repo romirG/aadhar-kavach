@@ -1768,7 +1768,11 @@
     </div>
 
     <script>
-        const ML_API = 'http://localhost:8000';
+        // Detect environment and set API URLs accordingly
+        const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
+        // Backend URL - Your deployed Render backend
+        const RENDER_EXPRESS_URL = 'https://aadhar-kavach.onrender.com';
+        const ML_API = isProduction ? RENDER_EXPRESS_URL : 'http://localhost:8000';
 
         // Initialize
         document.addEventListener('DOMContentLoaded', async () => {

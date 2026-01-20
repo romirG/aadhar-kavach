@@ -37,8 +37,18 @@ if (ML_BACKEND_URL && !ML_BACKEND_URL.startsWith('http')) {
   ML_BACKEND_URL = `https://${ML_BACKEND_URL}`;
 }
 
-// Middleware
-app.use(cors());
+// Middleware - Configure CORS for production frontend
+app.use(cors({
+  origin: [
+    'https://aadhar-kavach.vercel.app',  // Production Vercel frontend
+    'http://localhost:3001',              // Local development
+    'http://localhost:5173',              // Vite dev server
+    'http://127.0.0.1:3001'
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json());
 
 // Serve static files from public folder
