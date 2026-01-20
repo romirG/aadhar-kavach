@@ -1,0 +1,58 @@
+# UIDAI Datathon - Render Blueprint
+# This file defines all services for deployment on Render.com
+# https://render.com/docs/blueprint-spec
+
+services:
+  # ===========================================
+  # ML BACKEND SERVICE (Python FastAPI)
+  # ===========================================
+  - type: web
+    name: uidai-ml-backend
+    runtime: python
+    region: oregon  # Choose: oregon, frankfurt, singapore, ohio
+    plan: free      # Options: free, starter, standard, pro
+    rootDir: ml_backend
+    buildCommand: pip install -r requirements.txt
+    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.10.13"
+      - key: DATA_GOV_API_KEY
+        sync: false  # User must set this manually in Render dashboard
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY_1
+        sync: false
+      - key: HOST
+        value: "0.0.0.0"
+      - key: DEBUG
+        value: "false"
+    healthCheckPath: /health
+    autoDeploy: true
+
+  # ===========================================
+  # EXPRESS SERVER + FRONTEND (Node.js)
+  # Serves both API gateway and static frontend
+  # ===========================================
+  - type: web
+    name: uidai-express-server
+    runtime: node
+    region: oregon
+    plan: free
+    rootDir: server
+    buildCommand: npm install
+    startCommand: node index.js
+    envVars:
+      - key: NODE_VERSION
+        value: "20"
+      - key: ML_BACKEND_URL
+        fromService:
+          name: uidai-ml-backend
+          type: web
+          property: host
+      - key: DATA_GOV_API_KEY
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+    healthCheckPath: /api/health
+    autoDeploy: true

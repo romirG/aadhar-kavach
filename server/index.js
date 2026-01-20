@@ -29,7 +29,13 @@ import heerForecastRoutes from './heer-forecast/routes/heer-forecast.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
-const ML_BACKEND_URL = process.env.ML_BACKEND_URL || 'http://localhost:8000';
+
+// Handle ML_BACKEND_URL - Render provides hostname only, local dev uses full URL
+let ML_BACKEND_URL = process.env.ML_BACKEND_URL || 'http://localhost:8000';
+// If Render provides just hostname (no protocol), add https://
+if (ML_BACKEND_URL && !ML_BACKEND_URL.startsWith('http')) {
+  ML_BACKEND_URL = `https://${ML_BACKEND_URL}`;
+}
 
 // Middleware
 app.use(cors());
@@ -43,7 +49,7 @@ app.use('/biometric', express.static(path.join(__dirname, '..', 'biometric-risk-
 
 // Redirect risk_analysis.html to new location
 app.get('/risk_analysis.html', (req, res) => {
-    res.redirect('/biometric/');
+  res.redirect('/biometric/');
 });
 
 // Routes
@@ -56,8 +62,8 @@ app.use('/api/hotspots', hotspotsRoutes);
 
 // Test route to verify server is working
 app.get('/api/test', (req, res) => {
-    console.log('✅ Test route hit!');
-    res.json({ status: 'ok', message: 'Server is responding' });
+  console.log('✅ Test route hit!');
+  res.json({ status: 'ok', message: 'Server is responding' });
 });
 
 app.use('/api/geo-penetration', geoPenetrationRoutes);
@@ -105,7 +111,7 @@ app.use('/api/forecast', async (req, res) => {
 
 // Serve geospatial feature on /geospatial path
 app.get('/geospatial', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'geospatial.html'));
+  res.sendFile(path.join(__dirname, 'public', 'geospatial.html'));
 });
 
 // Monitoring API Proxy - Forward to ML backend /api/monitor endpoints
@@ -195,7 +201,7 @@ const server = app.listen(PORT, () => {
   console.log(`🗺️  Hotspots API: http://localhost:${PORT}/api/hotspots`);
   console.log(`📈 Spatial Analysis: http://localhost:${PORT}/api/hotspots/spatial`);
   console.log(`\n✅ Server is listening and ready for requests...`);
-  
+
   // Prevent process from exiting
   process.stdin.resume();
   console.log('📌 Process keep-alive enabled');
