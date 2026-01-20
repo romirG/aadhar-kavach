@@ -155,11 +155,37 @@ app.use((err, req, res, next) => {
   });
 });
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`🚀 UIDAI Backend Server running on http://localhost:${PORT}`);
   console.log(`📊 Dashboard API: http://localhost:${PORT}/api/dashboard`);
   console.log(`🤖 AI API: http://localhost:${PORT}/api/ai`);
   console.log(`🧠 ML API (proxied): http://localhost:${PORT}/api/ml → ${ML_BACKEND_URL}`);
   console.log(`🗺️  Hotspots API: http://localhost:${PORT}/api/hotspots`);
   console.log(`📈 Spatial Analysis: http://localhost:${PORT}/api/hotspots/spatial`);
+  console.log(`\n✅ Server is listening and ready for requests...`);
+  
+  // Prevent process from exiting
+  process.stdin.resume();
+  console.log('📌 Process keep-alive enabled');
 });
+
+server.setTimeout(0); // Disable timeout
+
+server.on('error', (err) => {
+  console.error('❌ Server error:', err);
+  if (err.code === 'EADDRINUSE') {
+    console.error(`Port ${PORT} is already in use. Please close other instances.`);
+    process.exit(1);
+  }
+});
+
+process.on('uncaughtException', (err) => {
+  console.error('❌ Uncaught Exception:', err);
+  console.error('Stack:', err.stack);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('❌ Unhandled Rejection at:', promise);
+  console.error('Reason:', reason);
+});
+
