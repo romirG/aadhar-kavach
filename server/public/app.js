@@ -430,46 +430,213 @@ async function loadRiskPredictor() {
 }
 
 async function loadForecast() {
-    setTitle('📅 Enrollment Forecast');
+    setTitle('📅 Enrollment Forecast - ARIMA Predictions');
 
     try {
-        const response = await fetch(`${API_BASE}/hotspots/trends?limit=500`);
-        const data = await response.json();
+        // First get list of available districts
+        const districtsResponse = await fetch(`${API_BASE}/heer-forecast/districts?limit=500`);
+        const districtsData = await districtsResponse.json();
 
-        if (data.success && data.data) {
-            const { regionalTrends } = data.data;
-
-            showContent(`
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-value" style="color: #00ff88;">${regionalTrends?.summary?.increasing || 0}</div>
-                        <div class="stat-label">Increasing Trend</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value">${regionalTrends?.summary?.stable || 0}</div>
-                        <div class="stat-label">Stable</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value" style="color: #ff4444;">${regionalTrends?.summary?.decreasing || 0}</div>
-                        <div class="stat-label">Decreasing Trend</div>
-                    </div>
-                </div>
-                
-                <h3 style="margin: 20px 0 15px;">📈 Regional Trends</h3>
-                ${renderTrends(regionalTrends?.regions || [])}
-            `);
-        } else {
-            showContent(`
-                <div class="alert alert-info">
-                    <strong>Enrollment Forecast:</strong> Time-series analysis for enrollment predictions.
-                </div>
-                <p style="margin-top: 15px; color: #aaa;">
-                    This feature uses seasonal decomposition to predict future enrollment patterns.
-                </p>
-            `);
+        if (!districtsData.success) {
+            showError('Failed to load districts data');
+            return;
         }
+
+        const districts = districtsData.districts || [];
+        
+        showContent(`
+            <div class="alert alert-info" style="margin-bottom: 20px;">
+                <strong>🔮 ARIMA-Based Enrollment Forecasting</strong>
+                <p style="margin: 10px 0 0 0; font-size: 0.9em;">
+                    Time-series predictions using Moving Average with Trend analysis.
+                    Select a district to view 6-month enrollment forecasts with confidence intervals.
+                </p>
+            </div>
+
+            <div class="forecast-selector" style="margin-bottom: 20px;">
+                <label for="district-select" style="display: block; margin-bottom: 10px; font-weight: bold;">
+                    Select District (${districts.length} available):
+                </label>
+                <div style="display: flex; gap: 10px;">
+                    <select id="district-select" style="flex: 1; padding: 10px; border-radius: 4px; border: 1px solid #444; background: #222; color: #fff;">
+                        <option value="">-- Choose a district --</option>
+                        ${districts.map(d => `<option value="${d}">${d}</option>`).join('')}
+                    </select>
+                    <button onclick="runForecast()" class="btn-primary" style="padding: 10px 20px;">
+                        Generate Forecast
+                    </button>
+                </div>
+            </div>
+
+            <div id="forecast-results"></div>
+        `);
     } catch (error) {
         showError(`Failed to load forecast: ${error.message}`);
+    }
+}
+
+async function runForecast() {
+    const select = document.getElementById('district-select');
+    const district = select.value;
+    
+    if (!district) {
+        alert('Please select a district');
+        return;
+    }
+
+    const resultsDiv = document.getElementById('forecast-results');
+    resultsDiv.innerHTML = '<div class="loading">⏳ Generating forecast...</div>';
+
+    try {
+        const response = await fetch(`${API_BASE}/heer-forecast/predict/${encodeURIComponent(district)}?periods=6`);
+        const data = await response.json();
+
+        if (!data.success) {
+            resultsDiv.innerHTML = `<div class="alert alert-error">${data.error || 'Failed to generate forecast'}</div>`;
+            return;
+        }
+
+        const { forecasts, historical_stats, model_type, confidence_level } = data;
+
+        // Prepare chart data
+        const labels = forecasts.map(f => f.date);
+        const predicted = forecasts.map(f => f.predicted_enrollment);
+        const lowerBound = forecasts.map(f => f.lower_bound);
+        const upperBound = forecasts.map(f => f.upper_bound);
+
+        resultsDiv.innerHTML = `
+            <div class="stats-grid" style="margin-bottom: 20px;">
+                <div class="stat-card">
+                    <div class="stat-value">${formatNumber(historical_stats.data_points)}</div>
+                    <div class="stat-label">Historical Data Points</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${formatNumber(historical_stats.mean)}</div>
+                    <div class="stat-label">Average Enrollment</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-value">${formatNumber(historical_stats.max)}</div>
+                    <div class="stat-label">Peak Enrollment</div>
+                </div>
+            </div>
+
+            <div style="background: #1a1a1a; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
+                    <span><strong>Model:</strong> ${model_type}</span>
+                    <span><strong>Confidence:</strong> ${(confidence_level * 100).toFixed(0)}%</span>
+                </div>
+                <div><strong>Last Date:</strong> ${historical_stats.last_date}</div>
+            </div>
+
+            <h3 style="margin: 20px 0 15px;">📈 6-Month Forecast</h3>
+            <canvas id="forecast-chart" style="max-height: 400px;"></canvas>
+
+            <h3 style="margin: 30px 0 15px;">📋 Detailed Predictions</h3>
+            <div class="data-table-container">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Period</th>
+                            <th>Date</th>
+                            <th>Predicted</th>
+                            <th>Lower Bound</th>
+                            <th>Upper Bound</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${forecasts.map(f => `
+                            <tr>
+                                <td>${f.period}</td>
+                                <td>${f.date}</td>
+                                <td><strong>${formatNumber(f.predicted_enrollment)}</strong></td>
+                                <td>${formatNumber(f.lower_bound)}</td>
+                                <td>${formatNumber(f.upper_bound)}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+
+        // Create Chart.js visualization
+        const ctx = document.getElementById('forecast-chart').getContext('2d');
+        new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: labels,
+                datasets: [
+                    {
+                        label: 'Predicted Enrollment',
+                        data: predicted,
+                        borderColor: '#00ff88',
+                        backgroundColor: 'rgba(0, 255, 136, 0.1)',
+                        borderWidth: 3,
+                        fill: false,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Upper Bound (90% CI)',
+                        data: upperBound,
+                        borderColor: '#ff9900',
+                        backgroundColor: 'rgba(255, 153, 0, 0.1)',
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        fill: false,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Lower Bound (90% CI)',
+                        data: lowerBound,
+                        borderColor: '#ff9900',
+                        backgroundColor: 'rgba(255, 153, 0, 0.1)',
+                        borderWidth: 2,
+                        borderDash: [5, 5],
+                        fill: '-1',
+                        tension: 0.4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: `Enrollment Forecast - ${district}`,
+                        color: '#fff',
+                        font: { size: 16 }
+                    },
+                    legend: {
+                        labels: { color: '#fff' }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                return context.dataset.label + ': ' + formatNumber(context.parsed.y);
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        ticks: { color: '#aaa' },
+                        grid: { color: '#333' }
+                    },
+                    y: {
+                        ticks: { 
+                            color: '#aaa',
+                            callback: function(value) {
+                                return formatNumber(value);
+                            }
+                        },
+                        grid: { color: '#333' }
+                    }
+                }
+            }
+        });
+
+    } catch (error) {
+        resultsDiv.innerHTML = `<div class="alert alert-error">Error: ${error.message}</div>`;
     }
 }
 

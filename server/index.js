@@ -24,6 +24,8 @@ import geoDataRoutes from './routes/geo-data.js';
 import ridwanGenderRoutes from './routes/ridwan-gender.js';
 import ridwanVulnerableRoutes from './routes/ridwan-vulnerable.js';
 import ridwanSimulateRoutes from './routes/ridwan-simulate.js';
+// Heer enrollment forecaster
+import heerForecastRoutes from './heer-forecast/routes/heer-forecast.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -65,6 +67,9 @@ app.use('/api/geo-data', geoDataRoutes);
 app.use('/api/ridwan-gender', ridwanGenderRoutes);
 app.use('/api/ridwan-vulnerable', ridwanVulnerableRoutes);
 app.use('/api/ridwan-simulate', ridwanSimulateRoutes);
+
+// Heer enrollment forecaster routes
+app.use('/api/heer-forecast', heerForecastRoutes);
 
 // Serve geospatial feature on /geospatial path
 app.get('/geospatial', (req, res) => {
