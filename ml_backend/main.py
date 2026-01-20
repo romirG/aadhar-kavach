@@ -96,9 +96,7 @@ app.mount("/static", StaticFiles(directory=OUTPUT_DIR), name="static")
 
 # Try to include routers - handle both old and new structures
 try:
-    from api.routes import datasets, analysis, visualizations, selection, reports, policy_api, monitor
-    # Monitoring API - Primary auditor-facing interface
-    app.include_router(monitor.router, tags=["Monitoring"])
+    from api.routes import datasets, analysis, visualizations, selection, reports, policy_api
     # Policy API - Government-facing policy controls
     app.include_router(policy_api.router, prefix="/api/policy", tags=["Policy Engine"])
     # Internal APIs
@@ -107,16 +105,31 @@ try:
     app.include_router(analysis.router, prefix="/api/ml", tags=["Internal - Analysis"])
     app.include_router(visualizations.router, prefix="/api/ml", tags=["Internal - Visualizations"])
     app.include_router(reports.router, prefix="/api/ml", tags=["Internal - Reports"])
-except ImportError as e:
+    logger.info("✅ Core API routers loaded")
+except Exception as e:
     import traceback
     with open("main_import_error.txt", "w") as f:
         traceback.print_exc(file=f)
     logger.error(f"Failed to load new routers: {e}")
     # Fallback to old router structure
-    from routers import datasets, analysis, visualizations
-    app.include_router(datasets.router, prefix="/api", tags=["Datasets"])
-    app.include_router(analysis.router, prefix="/api", tags=["Analysis"])
-    app.include_router(visualizations.router, prefix="/api", tags=["Visualizations"])
+    try:
+        from routers import datasets, analysis, visualizations
+        app.include_router(datasets.router, prefix="/api", tags=["Datasets"])
+        app.include_router(analysis.router, prefix="/api", tags=["Analysis"])
+        app.include_router(visualizations.router, prefix="/api", tags=["Visualizations"])
+    except Exception as e2:
+        logger.error(f"Fallback routers also failed: {e2}")
+
+# Monitoring API - Load separately to isolate policy dependencies
+try:
+    from api.routes import monitor
+    app.include_router(monitor.router, tags=["Monitoring"])
+    logger.info("✅ Monitoring API router loaded")
+except Exception as e:
+    import traceback
+    with open("monitor_import_error.txt", "w") as f:
+        traceback.print_exc(file=f)
+    logger.warning(f"⚠️ Could not load monitoring router: {e}")
 
 # Enrollment Forecast Router (Heer's ARIMA-based forecasting)
 try:
