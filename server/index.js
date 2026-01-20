@@ -40,9 +40,10 @@ if (ML_BACKEND_URL && !ML_BACKEND_URL.startsWith('http')) {
 // Middleware - Configure CORS for production frontend
 app.use(cors({
   origin: [
-    'https://aadhar-kavach.vercel.app',  // Production Vercel frontend
-    'http://localhost:3001',              // Local development
-    'http://localhost:5173',              // Vite dev server
+    'https://aadhar-kavach.vercel.app',    // Vercel frontend (if still used)
+    'https://aadhar-kavach-9x96.onrender.com',  // Express server on Render (self)
+    'http://localhost:3001',               // Local development
+    'http://localhost:5173',               // Vite dev server
     'http://127.0.0.1:3001'
   ],
   credentials: true,
