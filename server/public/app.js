@@ -403,8 +403,8 @@ async function loadRiskPredictor() {
     setTitle('🔮 Biometric Re-enrollment Risk Predictor');
 
     try {
-        // Check if ML backend is available
-        const mlHealth = await fetch(`${ML_API_BASE}/health`).then(r => r.json()).catch(() => null);
+        // Check if ML backend is available via Express proxy
+        const mlHealth = await fetch(`${API_BASE}/ml-health`).then(r => r.json()).catch(() => null);
 
         if (mlHealth) {
             showContent(`
