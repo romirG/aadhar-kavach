@@ -20,6 +20,10 @@ import aiRoutes from './routes/ai.js';
 import hotspotsRoutes from './routes/hotspots.js';
 import geoPenetrationRoutes from './routes/geo-penetration.js';
 import geoDataRoutes from './routes/geo-data.js';
+// Ridwan features
+import ridwanGenderRoutes from './routes/ridwan-gender.js';
+import ridwanVulnerableRoutes from './routes/ridwan-vulnerable.js';
+import ridwanSimulateRoutes from './routes/ridwan-simulate.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -56,6 +60,11 @@ app.get('/api/test', (req, res) => {
 
 app.use('/api/geo-penetration', geoPenetrationRoutes);
 app.use('/api/geo-data', geoDataRoutes);
+
+// Ridwan features routes
+app.use('/api/ridwan-gender', ridwanGenderRoutes);
+app.use('/api/ridwan-vulnerable', ridwanVulnerableRoutes);
+app.use('/api/ridwan-simulate', ridwanSimulateRoutes);
 
 // Serve geospatial feature on /geospatial path
 app.get('/geospatial', (req, res) => {
