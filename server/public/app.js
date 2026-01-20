@@ -5,8 +5,8 @@
 // Detect environment and set API URLs accordingly
 const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
 
-// Backend URL - Your deployed Render backend
-const RENDER_EXPRESS_URL = 'https://aadhar-kavach.onrender.com';
+// Backend URL - Your deployed Render Express server
+const RENDER_EXPRESS_URL = 'https://aadhar-kavach-9x96.onrender.com';
 
 const API_BASE = isProduction ? `${RENDER_EXPRESS_URL}/api` : '/api';
 // ML API - for direct calls (Express server proxies most ML calls through /api/ml)
