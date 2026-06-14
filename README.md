@@ -215,11 +215,12 @@ Get your keys at:
 
 ### Run with Docker
 
+The ML backend uses a root-level Dockerfile (`Dockerfile.mlbackend`) so the build context includes `operations_monitoring/` and `biometric-risk-predictor/` alongside the core `ml_backend/`.
+
 ```bash
-# ML Backend
-cd ml_backend
-docker build -t uidai-ml-backend .
-docker run -p 8000:8000 --env-file .env uidai-ml-backend
+# ML Backend — build from project root
+docker build -f Dockerfile.mlbackend -t uidai-ml-backend .
+docker run -p 8000:8000 --env-file ml_backend/.env uidai-ml-backend
 
 # Express Server
 cd server
@@ -229,7 +230,7 @@ docker run -p 3001:3001 --env-file .env uidai-express
 
 ### Deploy on Render
 
-A `render.yaml` blueprint is included for one-click deployment. Set these env vars in the Render dashboard:
+A `render.yaml` blueprint is included. The ML backend service uses `runtime: docker` with `Dockerfile.mlbackend`. Set these env vars in the Render dashboard:
 - `DATA_GOV_API_KEY`
 - `GROQ_API_KEY`
 - `GEMINI_API_KEY_1`
