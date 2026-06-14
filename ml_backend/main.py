@@ -169,6 +169,23 @@ except Exception as e:
         traceback.print_exc(file=f)
     logger.warning(f"⚠️ Could not load risk predictor router: {e}")
 
+# Operations Monitoring Router (from operations_monitoring/backend/)
+try:
+    # Add project root to sys.path so operations_monitoring is importable as a package
+    # This preserves relative imports (..policy, ..services) inside the monitoring module
+    project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    if project_root not in sys.path:
+        sys.path.insert(0, project_root)
+
+    from operations_monitoring.backend.routes.monitor import router as monitoring_router
+    app.include_router(monitoring_router, tags=["Operations Monitoring"])
+    logger.info("✅ Operations Monitoring router loaded")
+except Exception as e:
+    import traceback
+    with open("monitoring_ops_import_error.txt", "w") as f:
+        traceback.print_exc(file=f)
+    logger.warning(f"⚠️ Could not load operations monitoring router: {e}")
+
 
 @app.get("/")
 async def root():
