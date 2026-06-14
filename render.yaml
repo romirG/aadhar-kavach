@@ -8,17 +8,13 @@ services:
   # ===========================================
   - type: web
     name: uidai-ml-backend
-    runtime: python
-    region: oregon  # Choose: oregon, frankfurt, singapore, ohio
-    plan: free      # Options: free, starter, standard, pro
-    rootDir: ml_backend
-    buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn main:app --host 0.0.0.0 --port $PORT
+    runtime: docker
+    region: oregon
+    plan: free
+    dockerfilePath: ./Dockerfile.mlbackend
     envVars:
-      - key: PYTHON_VERSION
-        value: "3.10.13"
       - key: DATA_GOV_API_KEY
-        sync: false  # User must set this manually in Render dashboard
+        sync: false
       - key: GROQ_API_KEY
         sync: false
       - key: GEMINI_API_KEY_1

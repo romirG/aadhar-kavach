@@ -1,0 +1,76 @@
+# UIDAI ML Backend - Unified Analytics API
+# Root-level Dockerfile — build context is the full repo
+# This ensures operations_monitoring/ is available for the monitoring router
+
+# Stage 1: Build stage
+FROM python:3.10-slim AS builder
+
+# Install build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    gcc \
+    g++ \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create virtual environment
+RUN python -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Copy and install requirements from ml_backend
+COPY ml_backend/requirements.txt .
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir -r requirements.txt
+
+
+# Stage 2: Runtime stage
+FROM python:3.10-slim
+
+# Install runtime dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libgdal-dev \
+    libgeos-dev \
+    libproj-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create non-root user
+RUN useradd --create-home --shell /bin/bash appuser
+
+# Copy virtual environment from builder
+COPY --from=builder /opt/venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# Set working directory
+WORKDIR /app
+
+# Copy ml_backend source (main app)
+COPY --chown=appuser:appuser ml_backend/ ./
+
+# Copy operations_monitoring so the monitoring router can be imported
+COPY --chown=appuser:appuser operations_monitoring/ ./operations_monitoring/
+
+# Copy biometric-risk-predictor so its router can be imported
+COPY --chown=appuser:appuser biometric-risk-predictor/ ./biometric-risk-predictor/
+
+# Create directories for artifacts and models
+RUN mkdir -p /app/outputs /app/outputs/visualizations /app/outputs/models /app/outputs/reports && \
+    chown -R appuser:appuser /app
+
+# Switch to non-root user
+USER appuser
+
+# Set environment variables
+ENV PYTHONPATH=/app
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+ENV HOST=0.0.0.0
+ENV PORT=8000
+
+# Expose port
+EXPOSE 8000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')" || exit 1
+
+# Run the application
+CMD uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}
