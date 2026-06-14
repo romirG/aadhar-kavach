@@ -1,6 +1,6 @@
 # Aadhar Kavach — UIDAI Analytics Intelligence Platform
 
-A full-stack analytics and ML platform built for the UIDAI data hackathon, providing real-time insights into Aadhaar enrollment patterns, biometric health, gender inclusion gaps, and operational risk monitoring across India.
+A full-stack analytics and ML platform providing real-time insights into Aadhaar enrollment patterns, biometric health, gender inclusion gaps, and operational risk monitoring across India — powered by live government APIs and production-grade ML models.
 
 ---
 
@@ -301,6 +301,24 @@ No individual Aadhaar data is used. All analysis is aggregated at state/district
 
 ---
 
+## 🤝 Contributing
+
+Contributions are welcome! To get started:
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature/your-feature`
+3. Commit your changes: `git commit -m 'feat: add your feature'`
+4. Push to the branch: `git push origin feature/your-feature`
+5. Open a Pull Request
+
+Please make sure to update tests and documentation as appropriate.
+
+---
+
 ## 📄 License
 
-Built for the **UIDAI Data Hackathon** (internal use).
+MIT License — see [LICENSE](./LICENSE) for details.
+
+---
+
+*Built as part of the UIDAI Data Hackathon.*
