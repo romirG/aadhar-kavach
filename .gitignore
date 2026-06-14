@@ -1,4 +1,4 @@
-# Logs
+# ── Logs ──────────────────────────────────────────────────
 logs
 *.log
 npm-debug.log*
@@ -7,13 +7,15 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# ── Node ──────────────────────────────────────────────────
 node_modules
 dist
 dist-ssr
 *.local
 
-# Python
+# ── Python ────────────────────────────────────────────────
 __pycache__/
+**/__pycache__/
 *.py[cod]
 *$py.class
 *.so
@@ -27,7 +29,24 @@ venv/
 .pytest_cache/
 .mypy_cache/
 
-# Editor directories and files
+# ── ML artifacts (generated at runtime) ───────────────────
+*.pkl
+*.h5
+*.pt
+*.onnx
+ml_backend/artifacts/
+ml_backend/outputs/
+
+# ── Large raw data files (fetched at runtime from API) ────
+server/geospatial-data/raw/
+python_backend/data/*.geojson
+python_backend/data/*.csv
+
+# ── Secrets ───────────────────────────────────────────────
+.env
+**/.env
+
+# ── Editor directories and files ──────────────────────────
 .vscode/*
 !.vscode/extensions.json
 .idea
@@ -37,6 +56,4 @@ venv/
 *.njsproj
 *.sln
 *.sw?
-
-.env
-
+Thumbs.db
