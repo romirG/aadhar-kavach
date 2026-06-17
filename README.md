@@ -296,7 +296,7 @@ No individual Aadhaar data is used. All analysis is aggregated at state/district
 | Contributor | Modules |
 |-------------|---------|
 | **Romir** | Express gateway, frontend integration, geospatial map, project architecture |
-| **Heer** | Enrollment forecasting (ARIMA), `heer-suidai` module |
+| **Heer** | Enrollment forecasting (ARIMA) |
 | **Ridwan** | Gender inclusion tracker, vulnerable population analytics, simulation module |
 | **Kkshiteej** | Operations monitoring, Groq AI integration |
 
